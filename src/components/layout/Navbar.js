@@ -7,6 +7,44 @@ import { useCart } from '@/context/CartContext';
 import { products } from '@/data/products';
 import { IoSearchOutline, IoCartOutline, IoPersonOutline, IoMenuOutline, IoClose, IoChevronDown } from 'react-icons/io5';
 
+const SEARCH_ALIASES = {
+  джинсы: ['jeans'], джинсовые: ['jeans', 'denim'], джинсовый: ['jeans', 'denim'],
+  футболка: ['t-shirt'], футболки: ['t-shirt'], майка: ['t-shirt'], майки: ['t-shirt'],
+  рубашка: ['shirt'], рубашки: ['shirt'], поло: ['polo'],
+  шорты: ['shorts'], бермуды: ['shorts', 'bermuda'],
+  одежда: ['t-shirt', 'shirt', 'jeans', 'shorts', 'polo'],
+  клетчатая: ['checkered'], клетчатый: ['checkered'], клетка: ['checkered'],
+  полосатая: ['striped'], полосатый: ['striped'], полоска: ['striped'],
+  графическая: ['graphic'], графический: ['graphic'], принт: ['graphic'],
+  градиент: ['gradient'], градиентная: ['gradient'],
+  свободные: ['loose'], свободный: ['loose'], узкие: ['skinny'], зауженные: ['skinny'],
+  повседневные: ['casual'], повседневная: ['casual'], классическая: ['formal'], классические: ['formal'],
+  черный: ['black'], черная: ['black'], черные: ['black'], черного: ['black'],
+  белый: ['white'], белая: ['white'], белые: ['white'], белого: ['white'],
+  красный: ['red'], красная: ['red'], красные: ['red'], красного: ['red'],
+  зеленый: ['green'], зеленая: ['green'], зеленые: ['green'], зеленого: ['green'],
+  синий: ['blue', 'navy'], синяя: ['blue', 'navy'], синие: ['blue', 'navy'], синего: ['blue', 'navy'],
+  желтый: ['yellow'], желтая: ['yellow'], желтые: ['yellow'], желтого: ['yellow'],
+  оранжевый: ['orange'], оранжевая: ['orange'], оранжевые: ['orange'],
+  розовый: ['pink'], розовая: ['pink'], розовые: ['pink'],
+  фиолетовый: ['purple'], фиолетовая: ['purple'], фиолетовые: ['purple'],
+  голубой: ['cyan', 'light blue'], голубая: ['cyan', 'light blue'], голубые: ['cyan', 'light blue']
+};
+
+const normalizeSearch = (value) => value.toLowerCase().replace(/ё/g, 'е').trim();
+
+const matchesSearch = (product, query) => {
+  const haystack = normalizeSearch([
+    product.name,
+    product.category,
+    product.description,
+    product.dressStyle,
+    ...(product.availableColors || []).map((color) => color.name)
+  ].join(' '));
+  const tokens = normalizeSearch(query).split(/\s+/).filter(Boolean);
+  return tokens.every((token) => (SEARCH_ALIASES[token] || [token]).some((term) => haystack.includes(term)));
+};
+
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
@@ -17,10 +55,9 @@ export default function Navbar() {
   
   const { items } = useCart();
   const cartCount = items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
-  const searchResults = searchQuery.trim().length < 2 ? [] : products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-    product.category.toLowerCase().includes(searchQuery.trim().toLowerCase())
-  ).slice(0, 6);
+  const searchResults = searchQuery.trim().length < 2
+    ? []
+    : products.filter((product) => matchesSearch(product, searchQuery)).slice(0, 6);
 
   const submitSearch = (event) => {
     event.preventDefault();
