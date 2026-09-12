@@ -1,0 +1,48 @@
+'use client';
+
+import { useState } from 'react';
+import { IoMailOutline } from 'react-icons/io5';
+
+export default function Newsletter() {
+  const [email, setEmail] = useState('');
+
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    if (email) {
+      alert(`Subscribed with ${email}`);
+      setEmail('');
+    }
+  };
+
+  return (
+    <div className="w-full px-4 md:px-6 relative z-10 my-[10px]">
+      <div className="max-w-[1240px] mx-auto bg-black rounded-[20px] px-6 py-8 md:px-16 md:py-9 flex flex-col md:flex-row md:items-center md:justify-between gap-8 shadow-lg">
+        <h2 className="font-integral text-[24px] sm:text-[32px] md:text-[40px] font-bold text-white leading-tight md:max-w-[550px]">
+          STAY UPTO DATE ABOUT OUR LATEST OFFERS
+        </h2>
+        
+        <form onSubmit={handleSubscribe} className="flex flex-col space-y-3 w-full md:max-w-[350px]">
+          <div className="relative">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+              <IoMailOutline size={24} />
+            </div>
+            <input 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email address"
+              className="w-full bg-white rounded-full py-3 pl-12 pr-4 text-sm font-satoshi focus:outline-none text-black"
+              required
+            />
+          </div>
+          <button 
+            type="submit"
+            className="w-full bg-white text-black font-satoshi font-medium rounded-full py-3 hover:bg-gray-100 transition-colors"
+          >
+            Subscribe to Newsletter
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

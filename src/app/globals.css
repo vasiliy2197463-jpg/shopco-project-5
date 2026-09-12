@@ -1,0 +1,234 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Outfit:wght@300;400;500;600;700;800;900&family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700;6..96,900&family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@200;300;400&family=Playfair+Display:wght@600;700;800;900&display=swap');
+
+/* ========================================
+   SHOP.CO — Global Styles & Design System
+   ======================================== */
+
+
+/* --- Tailwind CSS 4 Theme Configuration --- */
+@theme {
+  /* Colors */
+  --color-primary: #000000;
+  --color-white: #FFFFFF;
+  --color-gray-bg: #F0F0F0;
+  --color-gray-100: #F0F0F0;
+  --color-gray-200: #F0F0F0;
+  --color-gray-300: #D9D9D9;
+  --color-gray-400: #BCBCBC;
+  --color-gray-500: #999999;
+  --color-gray-600: #666666;
+  --color-gray-700: #333333;
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-red-discount: #FF3333;
+  --color-star: #FFC633;
+  --color-green-verified: #01AB31;
+  --color-badge-red: rgba(255, 51, 51, 0.1);
+
+  /* Font Families */
+  --font-integral: "Archivo Black", sans-serif;
+  --font-satoshi: "Outfit", sans-serif;
+  --font-versace: "Cinzel", serif;
+  --font-zara: "Bodoni Moda", serif;
+  --font-gucci: "Cormorant Garamond", serif;
+  --font-prada: "Playfair Display", serif;
+  --font-calvin: "Montserrat", sans-serif;
+
+
+  /* Font Sizes */
+  --text-display: 4rem;       /* 64px */
+  --text-h1: 3rem;            /* 48px */
+  --text-h2: 2.25rem;         /* 36px */
+  --text-h3: 1.5rem;          /* 24px */
+  --text-h4: 1.25rem;         /* 20px */
+  --text-body: 1rem;          /* 16px */
+  --text-body-sm: 0.875rem;   /* 14px */
+  --text-caption: 0.75rem;    /* 12px */
+
+  /* Border Radius */
+  --radius-card: 20px;
+  --radius-pill: 62px;
+  --radius-button: 62px;
+  --radius-image: 20px;
+  --radius-input: 62px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Spacing */
+  --spacing-section: 4rem;    /* 64px */
+  --spacing-container: 6.25rem; /* 100px */
+
+  /* Shadows */
+  --shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.1);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+
+  /* Breakpoints */
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1440px;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.5s ease forwards;
+  --animate-slide-up: slide-up 0.5s ease forwards;
+  --animate-slide-in-left: slide-in-left 0.3s ease forwards;
+  --animate-slide-in-right: slide-in-right 0.3s ease forwards;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slide-in-left {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+
+  @keyframes slide-in-right {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+}
+
+/* --- Base Styles --- */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-satoshi);
+    color: var(--color-primary);
+    background-color: var(--color-white);
+    overflow-x: hidden;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-integral);
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: inherit;
+  }
+
+  input {
+    font-family: inherit;
+    border: none;
+    outline: none;
+  }
+}
+
+/* --- Utility Classes --- */
+@layer utilities {
+  .container-main {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .container-main {
+      padding: 0 2rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .container-main {
+      padding: 0;
+    }
+  }
+
+  .font-integral {
+    font-family: var(--font-integral);
+  }
+
+  .font-satoshi {
+    font-family: var(--font-satoshi);
+  }
+
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-gray-400);
+    border-radius: 4px;
+  }
+
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Line clamp */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Backdrop blur for mobile menu */
+  .backdrop-overlay {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+}
