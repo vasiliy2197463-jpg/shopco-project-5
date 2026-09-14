@@ -13,7 +13,7 @@ export default function DressStyle() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1fr_1.86fr] gap-4 lg:gap-5 mb-4 lg:mb-5">
             <Link href="/category/casual" className="relative h-[190px] sm:h-[200px] md:h-[218px] lg:h-[250px] 2xl:h-[289px] bg-white rounded-[20px] overflow-hidden group block">
               <Image src="/images/styles/casual.png" alt="Casual Style" fill className="object-cover object-right-top group-hover:scale-105 transition-transform duration-500 contrast-[1.15] brightness-[1.1]" />
-              <div className="style-card-label">
+              <div className="style-card-label style-card-label--vertical">
                 <span>Casual</span>
               </div>
             </Link>
@@ -34,7 +34,7 @@ export default function DressStyle() {
             </Link>
             <Link href="/category/gym" className="relative h-[190px] sm:h-[200px] md:h-[218px] lg:h-[250px] 2xl:h-[289px] bg-white rounded-[20px] overflow-hidden group block">
               <Image src="/images/styles/gym.png" alt="Gym Style" fill className="object-cover object-right-top group-hover:scale-105 transition-transform duration-500 contrast-[1.15] brightness-[1.1]" />
-              <div className="style-card-label">
+              <div className="style-card-label style-card-label--vertical">
                 <span>Gym</span>
               </div>
             </Link>

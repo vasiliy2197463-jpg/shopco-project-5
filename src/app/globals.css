@@ -242,6 +242,15 @@
   line-height: 1.05;
 }
 
+.style-card-label--vertical {
+  top: 50%;
+  left: clamp(18px, 2vw, 32px);
+  max-width: none;
+  white-space: nowrap;
+  transform: translate(-42%, -50%) rotate(-90deg);
+  transform-origin: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .brand-marquee__track { animation: none; }
 }
