@@ -1,10 +1,13 @@
+'use client';
+
 import Link from 'next/link';
 import SectionHeading from '@/components/common/SectionHeading';
 import ProductCard from '@/components/cards/ProductCard';
 import Button from '@/components/common/Button';
-import { products } from '@/data/products';
+import { useCatalog } from '@/context/CatalogContext';
 
 export default function NewArrivals() {
+  const { products } = useCatalog();
   const newArrivals = [3, 4, 5, 6].map(id => products.find(p => p.id === id)).filter(Boolean);
 
   return (

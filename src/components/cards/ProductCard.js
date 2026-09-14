@@ -31,7 +31,7 @@ export default function ProductCard({ product, priority = false }) {
 
   return (
     <article className="block group relative">
-      <Link href={`/product/${product.id || product.slug || '#'}`} className="block">
+      <Link href={`/item/?id=${product.id}`} className="block">
         <div className="relative aspect-square rounded-[20px] bg-gray-bg overflow-hidden p-4">
         {product.images && product.images[0] && (
           <Image
@@ -52,7 +52,7 @@ export default function ProductCard({ product, priority = false }) {
         <span className="min-w-8 text-center font-bold text-sm" aria-live="polite">{quantity}</span>
         <button onClick={() => increaseQuantity(product.id, defaultSize, selectedColorName)} className="w-9 h-9 sm:w-10 sm:h-10 text-xl font-bold hover:bg-black hover:text-white transition-colors" aria-label={`Add one more ${product.name}`}>+</button>
       </div>}
-      <Link href={`/product/${product.id || product.slug || '#'}`} className="block">
+      <Link href={`/item/?id=${product.id}`} className="block">
         <h3 className="font-bold text-sm sm:text-base mt-3 truncate">{product.name}</h3>
       <div className="mt-1 flex items-center gap-2">
         <RatingStars rating={product.rating} />

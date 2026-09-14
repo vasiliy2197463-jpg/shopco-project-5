@@ -15,16 +15,22 @@ const promoDefaults = [
 function normalizeProduct(product) {
   return {
     id: product.id,
+    slug: product.slug,
     name: product.name,
+    description: product.description || "",
     category: product.category || "Casual",
+    dress_style: product.dressStyle || "Casual",
     price: product.price,
     old_price: product.originalPrice || null,
-    stock: 25,
-    active: true,
+    rating: product.rating || 0,
+    stock: product.stock ?? 25,
+    active: product.active !== false,
     image: product.images?.[0] || product.availableColors?.[0]?.image,
     variants: product.availableColors?.length || 0,
   };
 }
+
+const slugify = (value) => value.toLowerCase().trim().replace(/[^a-z0-9а-яё]+/gi, "-").replace(/(^-|-$)/g, "");
 
 export default function AdminPage() {
   const { user, isOwnerAdmin, loading: authLoading } = useAuth();
@@ -35,6 +41,9 @@ export default function AdminPage() {
   const [orders, setOrders] = useState([]);
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newProduct, setNewProduct] = useState({ name: "", description: "", category: "t-shirts", price: "", stock: "", active: true, image: null });
   const [loading, setLoading] = useState(Boolean(supabase));
 
   useEffect(() => {
@@ -48,11 +57,14 @@ export default function AdminPage() {
         return;
       }
       const [{ data: dbProducts }, { data: dbPromos }, { data: dbOrders }] = await Promise.all([
-        supabase.from("products").select("*").order("id"),
+        supabase.from("products").select("*,product_variants(image_url)").order("id"),
         supabase.from("promo_codes").select("*").order("discount_percent"),
         supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(50),
       ]);
-      if (dbProducts?.length) setProducts(dbProducts);
+      if (dbProducts?.length) {
+        const sourceById = new Map(sourceProducts.map((product) => [product.id, normalizeProduct(product)]));
+        setProducts(dbProducts.map((product) => ({ ...sourceById.get(Number(product.id)), ...product, image: sourceById.get(Number(product.id))?.image || product.product_variants?.find((variant) => variant.image_url)?.image_url, variants: sourceById.get(Number(product.id))?.variants || product.product_variants?.length || 0 })));
+      }
       if (dbPromos?.length) setPromos(dbPromos);
       if (dbOrders) setOrders(dbOrders);
       setLoading(false);
@@ -66,13 +78,53 @@ export default function AdminPage() {
 
   const saveProducts = async () => {
     if (supabase) {
-      const payload = products.map(({ image, variants, ...product }) => product);
+      const payload = products.map(({ image, variants, product_variants, ...product }) => ({ ...product, slug: product.slug || `${slugify(product.name)}-${product.id}` }));
       const { error } = await supabase.from("products").upsert(payload);
       setNotice(error ? `Ошибка: ${error.message}` : "Товары сохранены в Supabase");
     } else {
       localStorage.setItem("shopco_admin_products", JSON.stringify(products));
       setNotice("Изменения сохранены локально. Подключите Supabase для общей базы.");
     }
+  };
+
+  const createProduct = async (event) => {
+    event.preventDefault();
+    if (!supabase || !newProduct.image) {
+      setNotice("Заполните поля и добавьте фотографию");
+      return;
+    }
+    setCreating(true);
+    const safeName = newProduct.image.name.replace(/[^a-z0-9._-]/gi, "-");
+    const filePath = `${Date.now()}-${safeName}`;
+    const { error: uploadError } = await supabase.storage.from("product-images").upload(filePath, newProduct.image);
+    if (uploadError) {
+      setNotice(`Ошибка загрузки: ${uploadError.message}`);
+      setCreating(false);
+      return;
+    }
+    const { data: publicImage } = supabase.storage.from("product-images").getPublicUrl(filePath);
+    const slug = `${slugify(newProduct.name)}-${Date.now()}`;
+    const { data: created, error } = await supabase.from("products").insert({
+      slug,
+      name: newProduct.name,
+      description: newProduct.description,
+      category: newProduct.category,
+      dress_style: "Casual",
+      price: Number(newProduct.price),
+      stock: Number(newProduct.stock),
+      active: newProduct.active,
+    }).select().single();
+    if (error) {
+      setNotice(`Ошибка: ${error.message}`);
+      setCreating(false);
+      return;
+    }
+    await supabase.from("product_variants").insert({ product_id: created.id, color_name: "Default", color_hex: "#000000", size: "One Size", image_url: publicImage.publicUrl, stock: Number(newProduct.stock) });
+    setProducts((current) => [...current, { ...created, image: publicImage.publicUrl, variants: 1 }]);
+    setNewProduct({ name: "", description: "", category: "t-shirts", price: "", stock: "", active: true, image: null });
+    setShowCreate(false);
+    setCreating(false);
+    setNotice("Товар создан и сохранён в Supabase");
   };
 
   const savePromos = async () => {
@@ -121,7 +173,20 @@ export default function AdminPage() {
           </>}
 
           {!loading && tab === "products" && <>
-            <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><h1 className="font-integral text-3xl font-bold md:text-5xl">ТОВАРЫ</h1><p className="mt-2 text-black/50">Цена, остаток и публикация</p></div><button onClick={saveProducts} className="rounded-full bg-black px-7 py-3 font-semibold text-white">Сохранить изменения</button></div>
+            <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><h1 className="font-integral text-3xl font-bold md:text-5xl">ТОВАРЫ</h1><p className="mt-2 text-black/50">Цена, остаток и публикация</p></div><div className="flex flex-wrap gap-3"><button onClick={() => setShowCreate((value) => !value)} className="rounded-full border border-black px-7 py-3 font-semibold">{showCreate ? "Закрыть" : "+ Создать товар"}</button><button onClick={saveProducts} className="rounded-full bg-black px-7 py-3 font-semibold text-white">Сохранить изменения</button></div></div>
+            {showCreate && <form onSubmit={createProduct} className="mb-6 grid gap-4 rounded-3xl bg-white p-5 shadow-sm md:grid-cols-2">
+              <div className="space-y-4">
+                <input required value={newProduct.name} onChange={(event) => setNewProduct((value) => ({ ...value, name: event.target.value }))} placeholder="Название товара" className="w-full rounded-2xl bg-[#f2f2f2] px-4 py-3" />
+                <textarea required value={newProduct.description} onChange={(event) => setNewProduct((value) => ({ ...value, description: event.target.value }))} placeholder="Небольшое описание" rows="4" className="w-full resize-none rounded-2xl bg-[#f2f2f2] px-4 py-3 outline-none" />
+                <select value={newProduct.category} onChange={(event) => setNewProduct((value) => ({ ...value, category: event.target.value }))} className="w-full rounded-2xl bg-[#f2f2f2] px-4 py-3"><option value="t-shirts">Футболки</option><option value="shirts">Рубашки</option><option value="jeans">Джинсы</option><option value="shorts">Шорты</option><option value="hoodie">Худи</option></select>
+              </div>
+              <div className="space-y-4">
+                <label onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const file = event.dataTransfer.files?.[0]; if (file?.type.startsWith("image/")) setNewProduct((value) => ({ ...value, image: file })); }} className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-black/20 bg-[#fafafa] p-5 text-center hover:border-black"><span className="font-bold">{newProduct.image ? newProduct.image.name : "Перетащите фотографию сюда"}</span><span className="mt-1 text-sm text-black/45">или нажмите, чтобы выбрать файл</span><input required type="file" accept="image/*" onChange={(event) => setNewProduct((value) => ({ ...value, image: event.target.files?.[0] || null }))} className="sr-only" /></label>
+                <div className="grid grid-cols-2 gap-3"><input required min="0" type="number" value={newProduct.price} onChange={(event) => setNewProduct((value) => ({ ...value, price: event.target.value }))} placeholder="Цена" className="rounded-2xl bg-[#f2f2f2] px-4 py-3" /><input required min="0" type="number" value={newProduct.stock} onChange={(event) => setNewProduct((value) => ({ ...value, stock: event.target.value }))} placeholder="Остаток" className="rounded-2xl bg-[#f2f2f2] px-4 py-3" /></div>
+                <label className="flex items-center gap-3"><input type="checkbox" checked={newProduct.active} onChange={(event) => setNewProduct((value) => ({ ...value, active: event.target.checked }))} className="h-5 w-5" /><span>Сразу опубликовать</span></label>
+                <button disabled={creating} className="w-full rounded-full bg-black px-7 py-3 font-semibold text-white disabled:opacity-50">{creating ? "Загрузка…" : "Создать товар"}</button>
+              </div>
+            </form>}
             <input value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Найти товар…" className="mb-5 w-full rounded-full border border-black/10 bg-white px-5 py-3" />
             <div className="overflow-hidden rounded-3xl bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left"><thead className="bg-black text-white"><tr><th className="p-4">Товар</th><th className="p-4">Цена</th><th className="p-4">Остаток</th><th className="p-4">Цветов</th><th className="p-4">Опубликован</th></tr></thead><tbody>{visibleProducts.map((product)=><tr key={product.id} className="border-b border-black/5"><td className="p-4"><div className="flex items-center gap-3">{product.image && <img src={assetPath(product.image)} alt="" className="h-14 w-14 rounded-xl bg-[#eee] object-cover"/>}<div><div className="font-bold">{product.name}</div><div className="text-xs text-black/45">{product.category}</div></div></div></td><td className="p-4"><input type="number" value={product.price} onChange={(e)=>updateProduct(product.id,"price",Number(e.target.value))} className="w-24 rounded-xl bg-[#f2f2f2] px-3 py-2"/></td><td className="p-4"><input type="number" value={product.stock} onChange={(e)=>updateProduct(product.id,"stock",Number(e.target.value))} className="w-24 rounded-xl bg-[#f2f2f2] px-3 py-2"/></td><td className="p-4">{product.variants || "—"}</td><td className="p-4"><button onClick={()=>updateProduct(product.id,"active",!product.active)} className={`rounded-full px-4 py-2 text-sm font-semibold ${product.active ? "bg-[#d7ff5f]" : "bg-black/10"}`}>{product.active ? "Да" : "Нет"}</button></td></tr>)}</tbody></table></div></div>
           </>}

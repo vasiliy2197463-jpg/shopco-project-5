@@ -5,9 +5,10 @@ import Breadcrumb from '@/components/common/Breadcrumb';
 import FilterSidebar from '@/components/category/FilterSidebar';
 import ProductGrid from '@/components/category/ProductGrid';
 import Pagination from '@/components/category/Pagination';
-import { products as allProducts } from '@/data/products';
+import { useCatalog } from '@/context/CatalogContext';
 
 export default function CategoryPage() {
+  const { products: allProducts } = useCatalog();
   const params = useParams();
   const slug = params?.slug || 'all';
   const displayCategory = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
@@ -125,7 +126,7 @@ export default function CategoryPage() {
 
     setFilteredProducts(result);
     setCurrentPage(1); 
-  }, [filters]);
+  }, [filters, allProducts]);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);

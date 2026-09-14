@@ -4,6 +4,7 @@ import StorefrontChrome from '@/components/layout/StorefrontChrome';
 import { LanguageProvider } from '@/context/LanguageContext';
 import SiteTranslator from '@/components/common/SiteTranslator';
 import { AuthProvider } from '@/context/AuthContext';
+import { CatalogProvider } from '@/context/CatalogContext';
 
 export const metadata = {
   title: 'SHOP.CO | Find Clothes That Matches Your Style',
@@ -20,9 +21,11 @@ export default function RootLayout({ children }) {
         <LanguageProvider>
           <SiteTranslator />
           <AuthProvider>
-            <CartProvider>
-              <StorefrontChrome>{children}</StorefrontChrome>
-            </CartProvider>
+            <CatalogProvider>
+              <CartProvider>
+                <StorefrontChrome>{children}</StorefrontChrome>
+              </CartProvider>
+            </CatalogProvider>
           </AuthProvider>
         </LanguageProvider>
       </body>

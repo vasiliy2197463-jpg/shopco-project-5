@@ -1,10 +1,13 @@
+'use client';
+
 import Link from 'next/link';
 import SectionHeading from '@/components/common/SectionHeading';
 import ProductCard from '@/components/cards/ProductCard';
 import Button from '@/components/common/Button';
-import { products } from '@/data/products';
+import { useCatalog } from '@/context/CatalogContext';
 
 export default function TopSelling() {
+  const { products } = useCatalog();
   const topSelling = [7, 8, 9, 12].map(id => products.find(p => p.id === id)).filter(Boolean);
 
   return (
