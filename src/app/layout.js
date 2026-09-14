@@ -1,9 +1,6 @@
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
-import AnnouncementBar from '@/components/layout/AnnouncementBar';
-import Navbar from '@/components/layout/Navbar';
-import Newsletter from '@/components/layout/Newsletter';
-import Footer from '@/components/layout/Footer';
+import StorefrontChrome from '@/components/layout/StorefrontChrome';
 import { LanguageProvider } from '@/context/LanguageContext';
 import SiteTranslator from '@/components/common/SiteTranslator';
 
@@ -22,13 +19,7 @@ export default function RootLayout({ children }) {
         <LanguageProvider>
           <SiteTranslator />
           <CartProvider>
-            <AnnouncementBar />
-            <Navbar />
-            <main className="flex-grow overflow-x-hidden">
-              {children}
-            </main>
-            <Newsletter />
-            <Footer />
+            <StorefrontChrome>{children}</StorefrontChrome>
           </CartProvider>
         </LanguageProvider>
       </body>
