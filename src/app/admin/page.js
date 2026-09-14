@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { products as sourceProducts } from "@/data/products";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { assetPath } from "@/components/common/BaseImage";
+import { useAuth } from "@/context/AuthContext";
 
 const promoDefaults = [
   { code: "SALE20", discount_percent: 20, active: true },
@@ -26,6 +27,7 @@ function normalizeProduct(product) {
 }
 
 export default function AdminPage() {
+  const { user, isOwnerAdmin, loading: authLoading } = useAuth();
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [tab, setTab] = useState("overview");
   const [products, setProducts] = useState(sourceProducts.map(normalizeProduct));
@@ -85,6 +87,9 @@ export default function AdminPage() {
 
   const visibleProducts = products.filter((product) => product.name.toLowerCase().includes(query.toLowerCase()));
   const inventoryValue = products.reduce((sum, item) => sum + Number(item.price) * Number(item.stock || 0), 0);
+
+  if (authLoading) return <main className="flex min-h-screen items-center justify-center bg-[#f5f5f5] text-lg font-semibold">Проверка доступа…</main>;
+  if (!user || !isOwnerAdmin) return <main className="flex min-h-screen items-center justify-center bg-[#f5f5f5] px-5"><div className="max-w-lg rounded-[32px] bg-white p-8 text-center shadow-sm"><h1 className="font-integral text-3xl font-bold">Доступ закрыт</h1><p className="mt-3 text-black/55">Панель доступна только владельцу магазина.</p><a href={assetPath("/account/")} className="mt-6 inline-block rounded-full bg-black px-7 py-3 font-semibold text-white">Войти в аккаунт</a></div></main>;
 
   return (
     <main className="min-h-screen bg-[#f5f5f5] text-black">

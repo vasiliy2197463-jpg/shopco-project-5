@@ -26,7 +26,7 @@ const RU = {
   "Terms & Conditions": "Условия использования", "Privacy Policy": "Политика конфиденциальности",
   "Manage Deliveries": "Управление доставками", "Orders": "Заказы", "Payments": "Оплата", "Resources": "Материалы",
   "Free eBooks": "Бесплатные книги", "Development Tutorial": "Руководство пользователя", "How to - Blog": "Полезные статьи",
-  "Youtube Playlist": "Видеоинструкции", "Subscribe to Newsletter": "Подписаться на новости",
+  "Youtube Playlist": "Видеоинструкции", "Subscribe to Newsletter": "Подписаться на новости", "Admin panel": "Панель администратора",
   "My Account": "Мой аккаунт", "Account functionality is coming soon!": "Функции аккаунта скоро появятся!",
   "Sign Up": "Регистрация", "Signup functionality is coming soon!": "Регистрация скоро станет доступна!", "Back to Home": "Вернуться на главную",
   "No products found": "Товары не найдены", "No products found matching your filters.": "По выбранным фильтрам товары не найдены.",
