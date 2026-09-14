@@ -5,7 +5,7 @@ import Button from '@/components/common/Button';
 import { useCart } from '@/context/CartContext';
 
 export default function OrderSummary() {
-  const { subtotal, discountAmount, deliveryFee, total, promoCode, setPromoCode, applyPromo, promoApplied } = useCart();
+  const { subtotal, discountAmount, deliveryFee, total, promoCode, setPromoCode, applyPromo, promoApplied, activePromo, discountRate } = useCart();
   const [promoError, setPromoError] = useState('');
 
   const handleApplyPromo = () => {
@@ -13,7 +13,7 @@ export default function OrderSummary() {
     if (!promoCode) return;
     const success = applyPromo(promoCode);
     if (!success) {
-      setPromoError("Invalid code. Try 'discount20'");
+      setPromoError("Invalid code. Try SALE20, SALE30 or SALE50.");
     }
   };
 
@@ -28,8 +28,8 @@ export default function OrderSummary() {
         </div>
         
         <div className="flex justify-between items-center">
-          <span className="text-gray-600 text-base">Discount (-20%)</span>
-          <span className="text-red-discount font-bold text-base">-${discountAmount || 0}</span>
+          <span className="text-gray-600 text-base">Discount (-{Math.round(discountRate * 100)}%)</span>
+          <span className="text-red-discount font-bold text-base">-${Number(discountAmount || 0).toFixed(2)}</span>
         </div>
         
         <div className="flex justify-between items-center">
@@ -68,7 +68,7 @@ export default function OrderSummary() {
         </div>
         {promoApplied && (
           <p className="text-sm text-green-verified font-medium pl-2">
-            Code "discount20" applied! 20% discount has been deducted.
+            Code "{activePromo?.code}" applied! {Math.round((activePromo?.rate || 0) * 100)}% discount has been deducted.
           </p>
         )}
         {promoError && (

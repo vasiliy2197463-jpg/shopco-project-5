@@ -8,7 +8,7 @@ const CartContext = createContext(undefined);
 export function CartProvider({ children }) {
   const [items, setItems] = useState([]);
   const [promoCode, setPromoCode] = useState("");
-  const [promoApplied, setPromoApplied] = useState(false);
+  const [activePromo, setActivePromo] = useState(null);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -91,16 +91,23 @@ export function CartProvider({ children }) {
 
   const applyPromo = (code) => {
     const codeToApply = typeof code === 'string' ? code : promoCode;
-    if (codeToApply && codeToApply.trim().toLowerCase() === "discount20") {
-      setPromoApplied(true);
-      return true;
-    }
-    return false;
+    const promoCodes = {
+      sale20: 0.2,
+      sale30: 0.3,
+      sale50: 0.5,
+      discount20: 0.2,
+    };
+    const normalizedCode = codeToApply?.trim().toLowerCase();
+    const rate = promoCodes[normalizedCode];
+    if (!rate) return false;
+    const promo = { code: normalizedCode.toUpperCase(), rate };
+    setActivePromo(promo);
+    return promo;
   };
 
   const subtotal = useMemo(() => items.reduce((acc, item) => acc + item.price * item.quantity, 0), [items]);
-  const discountRate = 0.20; // 20%
-  const discountAmount = useMemo(() => (promoApplied ? subtotal * discountRate : 0), [subtotal, promoApplied, discountRate]);
+  const discountRate = activePromo?.rate || 0;
+  const discountAmount = useMemo(() => subtotal * discountRate, [subtotal, discountRate]);
   const deliveryFee = useMemo(() => (subtotal > 500 || subtotal === 0 ? 0 : 15), [subtotal]);
   const total = useMemo(() => {
     const discountedTotal = subtotal - discountAmount;
@@ -121,7 +128,8 @@ export function CartProvider({ children }) {
     total,
     promoCode,
     setPromoCode,
-    promoApplied,
+    promoApplied: Boolean(activePromo),
+    activePromo,
     applyPromo
   };
 

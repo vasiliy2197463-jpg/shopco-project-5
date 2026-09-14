@@ -158,6 +158,40 @@
   }
 }
 
+@keyframes announcement-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.announcement-marquee {
+  display: flex;
+  width: max-content;
+  animation: announcement-scroll 28s linear infinite;
+  padding-right: 150px;
+}
+
+.announcement-marquee:hover {
+  animation-play-state: paused;
+}
+
+.announcement-marquee__group,
+.announcement-marquee__item {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.announcement-marquee__item {
+  gap: 12px;
+  padding: 0 32px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .announcement-marquee { animation: none; }
+}
+
 /* --- Utility Classes --- */
 @layer utilities {
   .container-main {
