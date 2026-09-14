@@ -20,7 +20,7 @@ const COLORS = [
 const SIZES = ['XX-Small', 'X-Small', 'Small', 'Medium', 'Large', 'X-Large', 'XX-Large', '3X-Large', '4X-Large'];
 const DRESS_STYLES = ['Casual', 'Formal', 'Party', 'Gym'];
 
-export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose }) {
+export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose, maxPrice = 300 }) {
   const [expanded, setExpanded] = useState({
     price: true,
     colors: true,
@@ -87,7 +87,7 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
           {expanded.price ? <IoChevronUp /> : <IoChevronDown />}
         </button>
         {expanded.price && (
-          <PriceSlider min={0} max={300} value={filters.priceRange || [50, 200]} onChange={handlePriceChange} />
+          <PriceSlider min={0} max={maxPrice} value={filters.priceRange || [0, maxPrice]} onChange={handlePriceChange} />
         )}
       </div>
 

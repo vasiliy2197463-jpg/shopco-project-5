@@ -23,6 +23,7 @@ export default function CategoryPage() {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
+  const maxCatalogPrice = Math.max(300, Math.ceil(Math.max(...allProducts.map((product) => Number(product.price) || 0), 0) / 100) * 100);
 
   const stylesList = ['casual', 'formal', 'party', 'gym'];
   const isStyleSlug = stylesList.includes(slug.toLowerCase());
@@ -48,6 +49,12 @@ export default function CategoryPage() {
       selectedStyle: isStyle ? displayCategory : null
     }));
   }, [slug, displayCategory]);
+
+  useEffect(() => {
+    setFilters((previous) => previous.priceRange[1] < maxCatalogPrice
+      ? { ...previous, priceRange: [previous.priceRange[0], maxCatalogPrice] }
+      : previous);
+  }, [maxCatalogPrice]);
 
   const [filteredProducts, setFilteredProducts] = useState(() =>
     (allProducts || []).filter((product) => {
@@ -156,6 +163,7 @@ export default function CategoryPage() {
         <div className="hidden lg:block sticky top-24 shrink-0">
           <FilterSidebar 
             filters={filters} 
+            maxPrice={maxCatalogPrice}
             onFilterChange={handleFilterChange} 
             isOpen={false}
             onClose={() => {}} 
@@ -166,6 +174,7 @@ export default function CategoryPage() {
         <div className="lg:hidden">
           <FilterSidebar 
             filters={filters} 
+            maxPrice={maxCatalogPrice}
             onFilterChange={handleFilterChange} 
             isOpen={isMobileFilterOpen}
             onClose={() => setIsMobileFilterOpen(false)} 

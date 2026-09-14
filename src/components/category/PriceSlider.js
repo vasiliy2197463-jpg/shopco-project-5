@@ -6,6 +6,11 @@ export default function PriceSlider({ min = 0, max = 500, value = [50, 200], onC
   const [maxVal, setMaxVal] = useState(value[1]);
   const range = useRef(null);
 
+  useEffect(() => {
+    setMinVal(Math.max(min, Math.min(value[0], max)));
+    setMaxVal(Math.max(min, Math.min(value[1], max)));
+  }, [value, min, max]);
+
   const getPercent = (val) => Math.round(((val - min) / (max - min)) * 100);
 
   useEffect(() => {
