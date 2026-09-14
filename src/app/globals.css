@@ -242,7 +242,7 @@
   line-height: 1.05;
 }
 
-.style-card-label--vertical {
+html[lang="ru"] .style-card-label {
   top: 50%;
   left: clamp(18px, 2vw, 32px);
   max-width: none;
