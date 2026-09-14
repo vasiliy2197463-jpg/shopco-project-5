@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { products } from '@/data/products';
 import { IoSearchOutline, IoCartOutline, IoPersonOutline, IoMenuOutline, IoClose, IoChevronDown } from 'react-icons/io5';
+import { assetPath } from '@/components/common/BaseImage';
 
 const SEARCH_ALIASES = {
   джинсы: ['jeans'], джинсовые: ['jeans', 'denim'], джинсовый: ['jeans', 'denim'],
@@ -144,7 +145,7 @@ export default function Navbar() {
               <button type="button" onClick={() => setIsSearchResultsOpen(false)} className="w-7 h-7 shrink-0 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-700 transition-colors" aria-label="Close search results"><IoClose size={18}/></button>
             </div>
             {searchResults.length ? searchResults.map((product) => <Link key={product.id} href={`/product/${product.id}`} onClick={() => { setSearchQuery(''); setIsSearchResultsOpen(false); }} className="flex items-center gap-3 px-4 py-3 hover:bg-[#F0F0F0] border-b border-black/5 last:border-0">
-              <img src={product.images[0]} alt="" className="w-11 h-11 object-cover rounded-lg bg-[#F0F0F0]" />
+              <img src={assetPath(product.images[0])} alt="" className="w-11 h-11 object-cover rounded-lg bg-[#F0F0F0]" />
               <span className="font-satoshi font-medium text-sm">{product.name}</span><b className="ml-auto text-sm">${product.price}</b>
             </Link>) : <p className="px-4 py-4 text-sm text-gray-500">No products found</p>}
           </div>}
@@ -175,7 +176,7 @@ export default function Navbar() {
         <div className="relative"><IoSearchOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={21}/><input autoFocus value={searchQuery} onChange={(event) => { setSearchQuery(event.target.value); setIsSearchResultsOpen(true); }} onFocus={() => searchQuery.trim().length >= 2 && setIsSearchResultsOpen(true)} placeholder="Search for products..." className="w-full bg-[#F0F0F0] rounded-full py-3 pl-12 pr-12 outline-none" />{searchQuery && <button type="button" onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-700 transition-colors" aria-label="Clear search"><IoClose size={17}/></button>}</div>
         {searchQuery.trim().length >= 2 && isSearchResultsOpen && <div className="absolute left-4 right-4 top-[56px] rounded-2xl bg-white border border-black/10 shadow-xl overflow-hidden z-[70]">
           <div className="flex items-center justify-between px-4 py-2 border-b border-black/10"><span className="text-xs font-medium text-gray-500">Search results</span><button type="button" onClick={() => setIsSearchResultsOpen(false)} className="w-7 h-7 shrink-0 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-700 transition-colors" aria-label="Close search results"><IoClose size={18}/></button></div>
-          {searchResults.length ? searchResults.map((product) => <Link key={product.id} href={`/product/${product.id}`} onClick={() => {setSearchQuery('');setIsSearchResultsOpen(false);setIsMobileSearchOpen(false)}} className="flex items-center gap-3 px-4 py-3 hover:bg-[#F0F0F0] border-b border-black/5"><img src={product.images[0]} alt="" className="w-11 h-11 object-cover rounded-lg"/><span className="text-sm font-medium">{product.name}</span><b className="ml-auto text-sm">${product.price}</b></Link>) : <p className="px-4 py-4 text-sm text-gray-500">No products found</p>}
+          {searchResults.length ? searchResults.map((product) => <Link key={product.id} href={`/product/${product.id}`} onClick={() => {setSearchQuery('');setIsSearchResultsOpen(false);setIsMobileSearchOpen(false)}} className="flex items-center gap-3 px-4 py-3 hover:bg-[#F0F0F0] border-b border-black/5"><img src={assetPath(product.images[0])} alt="" className="w-11 h-11 object-cover rounded-lg"/><span className="text-sm font-medium">{product.name}</span><b className="ml-auto text-sm">${product.price}</b></Link>) : <p className="px-4 py-4 text-sm text-gray-500">No products found</p>}
         </div>}
       </form>}
 

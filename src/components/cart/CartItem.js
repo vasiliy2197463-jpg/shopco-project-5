@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import Image from '@/components/common/BaseImage';
 import { IoTrashOutline } from 'react-icons/io5';
 import { useCart } from '@/context/CartContext';
 

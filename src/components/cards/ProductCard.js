@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import Image from '@/components/common/BaseImage';
 import Link from 'next/link';
 import { useState } from 'react';
 import { IoCartOutline, IoCheckmark } from 'react-icons/io5';

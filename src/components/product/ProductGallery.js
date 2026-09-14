@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import Image from '@/components/common/BaseImage';
 
 export default function ProductGallery({ images = [] }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
