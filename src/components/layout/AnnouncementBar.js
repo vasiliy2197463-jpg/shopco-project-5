@@ -10,8 +10,8 @@ export default function AnnouncementBar() {
   const { language } = useLanguage();
 
   const copy = language === 'ru'
-    ? { message: 'Большая распродажа в SHOP.CO — используйте промокоды SALE20, SALE30 или SALE50 и экономьте до 50%.', action: 'Перейти к покупкам' }
-    : { message: 'Big sale at SHOP.CO — use SALE20, SALE30 or SALE50 promo codes and save up to 50%.', action: 'Shop Now' };
+    ? { message: 'Большая распродажа в SHOP.CO — скидки до 50% на избранные товары.', action: 'Перейти к покупкам' }
+    : { message: 'Big sale at SHOP.CO — save up to 50% on selected items.', action: 'Shop Now' };
 
   if (!isVisible) return null;
 
