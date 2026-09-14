@@ -15,9 +15,9 @@ export function LanguageProvider({ children }) {
   }, []);
 
   const changeLanguage = (nextLanguage) => {
-    setLanguage(nextLanguage);
     localStorage.setItem("shopco_language", nextLanguage);
-    document.documentElement.lang = nextLanguage;
+    setLanguage(nextLanguage);
+    window.location.reload();
   };
 
   return (

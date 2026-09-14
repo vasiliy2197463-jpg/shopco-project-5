@@ -5,6 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import Newsletter from '@/components/layout/Newsletter';
 import Footer from '@/components/layout/Footer';
 import { LanguageProvider } from '@/context/LanguageContext';
+import SiteTranslator from '@/components/common/SiteTranslator';
 
 export const metadata = {
   title: 'SHOP.CO | Find Clothes That Matches Your Style',
@@ -19,6 +20,7 @@ export default function RootLayout({ children }) {
     <html lang="en" data-scroll-behavior="smooth">
       <body className="antialiased bg-white text-black min-h-screen flex flex-col">
         <LanguageProvider>
+          <SiteTranslator />
           <CartProvider>
             <AnnouncementBar />
             <Navbar />

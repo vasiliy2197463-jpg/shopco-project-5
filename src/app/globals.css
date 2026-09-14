@@ -192,6 +192,60 @@
   .announcement-marquee { animation: none; }
 }
 
+.brand-marquee {
+  overflow: hidden;
+}
+
+.brand-marquee__track {
+  display: flex;
+  width: max-content;
+  animation: brand-scroll 22s linear infinite;
+}
+
+.brand-marquee__group {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-around;
+  gap: clamp(64px, 9vw, 150px);
+  min-width: 100vw;
+  padding: 0 clamp(32px, 5vw, 80px);
+}
+
+.brand-marquee__logo {
+  display: flex;
+  min-width: 120px;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-marquee:hover .brand-marquee__track {
+  animation-play-state: paused;
+}
+
+@keyframes brand-scroll {
+  to { transform: translateX(-50%); }
+}
+
+.style-card-label {
+  position: absolute;
+  z-index: 2;
+  top: clamp(20px, 2.25vw, 36px);
+  left: clamp(20px, 2.25vw, 36px);
+  max-width: 46%;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 3px 9px 5px;
+  color: var(--color-primary);
+  font-size: clamp(22px, 2.1vw, 36px);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-marquee__track { animation: none; }
+}
+
 /* --- Utility Classes --- */
 @layer utilities {
   .container-main {

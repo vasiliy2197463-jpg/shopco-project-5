@@ -10,13 +10,14 @@ export default function BrandLogos() {
   ];
 
   return (
-    <div className="bg-black w-full py-5 md:py-7">
-      <div className="container-main mx-auto px-6 lg:px-8">
-        <div className="flex flex-wrap md:flex-nowrap items-center justify-center md:justify-between gap-x-12 gap-y-6 sm:gap-x-16 md:gap-x-6 lg:gap-x-10 w-full max-w-7xl mx-auto">
+    <div className="brand-marquee bg-black w-full py-5 md:py-7" aria-label="Featured brands">
+      <div className="brand-marquee__track">
+        {[0, 1].map((group) => (
+          <div className="brand-marquee__group" aria-hidden={group === 1} key={group}>
           {brands.map((brand) => (
             <div
-              key={brand.alt}
-              className="flex items-center justify-center transition-opacity hover:opacity-75 duration-300"
+              key={`${group}-${brand.alt}`}
+              className="brand-marquee__logo transition-opacity hover:opacity-75 duration-300"
             >
               <Image
                 src={brand.src}
@@ -28,9 +29,9 @@ export default function BrandLogos() {
               />
             </div>
           ))}
+          </div>
+        ))}
         </div>
-      </div>
     </div>
   );
 }
-

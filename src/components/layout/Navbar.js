@@ -7,6 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { products } from '@/data/products';
 import { IoSearchOutline, IoCartOutline, IoPersonOutline, IoMenuOutline, IoClose, IoChevronDown } from 'react-icons/io5';
 import { assetPath } from '@/components/common/BaseImage';
+import { useLanguage } from '@/context/LanguageContext';
 
 const SEARCH_ALIASES = {
   джинсы: ['jeans'], джинсовые: ['jeans', 'denim'], джинсовый: ['jeans', 'denim'],
@@ -54,6 +55,7 @@ export default function Navbar() {
   const [isSearchResultsOpen, setIsSearchResultsOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const router = useRouter();
+  const { language, changeLanguage } = useLanguage();
   
   const { items } = useCart();
   const cartCount = items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
@@ -150,6 +152,14 @@ export default function Navbar() {
             </Link>) : <p className="px-4 py-4 text-sm text-gray-500">No products found</p>}
           </div>}
         </form>
+
+        <div className="flex rounded-full border border-black/20 overflow-hidden bg-white shrink-0 mr-2" aria-label="Language switcher">
+          {['en', 'ru'].map((code) => (
+            <button key={code} type="button" onClick={() => changeLanguage(code)} className={`px-2.5 py-1.5 text-[11px] sm:text-xs font-bold uppercase transition-colors ${language === code ? 'bg-black text-white' : 'text-black hover:bg-black/10'}`} aria-pressed={language === code}>
+              {code}
+            </button>
+          ))}
+        </div>
 
         {/* Right Icons */}
         <div className="flex items-center space-x-3 md:space-x-5 flex-shrink-0 ml-auto lg:ml-0">
