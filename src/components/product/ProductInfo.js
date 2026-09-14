@@ -37,7 +37,7 @@ export default function ProductInfo({ product, selectedColor: controlledColor, o
       color: selectedColor.name,
       size: selectedSize,
       quantity,
-      image: product.images?.[0] || '/images/products/product-1.png'
+      image: selectedColor.image || product.images?.[0] || '/images/products/product-1.png'
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);

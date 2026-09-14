@@ -23,6 +23,7 @@ export default function ProductCard({ product, priority = false }) {
       quantity: 1,
       size: defaultSize,
       color: selectedColorName,
+      image: selectedColor.image || product.images?.[0],
     });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1300);

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useMemo, useEffect } from "react";
+import { products } from "@/data/products";
 
 const CartContext = createContext(undefined);
 
@@ -14,7 +15,21 @@ export function CartProvider({ children }) {
     const savedCart = localStorage.getItem("shopco_cart");
     if (savedCart) {
       try {
-        setItems(JSON.parse(savedCart));
+        const savedItems = JSON.parse(savedCart);
+        const restoredItems = savedItems.map((item) => {
+          const product = products.find((candidate) => String(candidate.id) === String(item.id));
+          const savedColor = String(item.color || '').toLowerCase();
+          const color = product?.availableColors?.find((candidate) => {
+            const candidateColor = candidate.name.toLowerCase();
+            return candidateColor === savedColor || savedColor.startsWith(candidateColor) || candidateColor.startsWith(savedColor);
+          });
+
+          return {
+            ...item,
+            image: color?.image || product?.images?.[0] || item.image || '/images/products/product-1.png'
+          };
+        });
+        setItems(restoredItems);
       } catch (e) {
         console.error("Failed to parse cart items", e);
       }
@@ -34,7 +49,7 @@ export function CartProvider({ children }) {
       if (existingItem) {
         return prev.map((item) =>
           item.id === product.id && item.size === product.size && item.color === product.color
-            ? { ...item, quantity: item.quantity + (product.quantity || 1) }
+            ? { ...item, image: product.image || item.image, quantity: item.quantity + (product.quantity || 1) }
             : item
         );
       }
