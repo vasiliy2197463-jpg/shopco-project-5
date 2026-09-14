@@ -97,3 +97,21 @@ create policy "customers create order items" on public.order_items for insert wi
   exists(select 1 from public.orders where orders.id = order_items.order_id and (orders.user_id = auth.uid() or orders.user_id is null))
 );
 create policy "admins manage order items" on public.order_items for all using (public.is_admin()) with check (public.is_admin());
+
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, full_name, role)
+  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', ''), 'customer')
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users for each row execute procedure public.handle_new_user();
+
+create policy "users read own profile" on public.profiles for select using (id = auth.uid() or public.is_admin());
+create policy "users update own profile" on public.profiles for update using (id = auth.uid()) with check (id = auth.uid());

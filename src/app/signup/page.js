@@ -1,14 +1,45 @@
-import React from 'react';
-import Link from 'next/link';
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function SignupPage() {
+  const router = useRouter();
+  const { configured, signUp, signIn, resetPassword } = useAuth();
+  const [mode, setMode] = useState("signup");
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async (event) => {
+    event.preventDefault(); setBusy(true); setMessage("");
+    const { data, error } = await (mode === "signup" ? signUp(form.email, form.password, form.name) : signIn(form.email, form.password));
+    setBusy(false);
+    if (error) return setMessage(error.message);
+    if (mode === "signup" && !data.session) return setMessage("Проверьте почту и подтвердите регистрацию.");
+    router.push("/account");
+  };
+  const recover = async () => {
+    if (!form.email) return setMessage("Сначала укажите email.");
+    const { error } = await resetPassword(form.email);
+    setMessage(error ? error.message : "Ссылка для восстановления отправлена на почту.");
+  };
   return (
-    <main className="container-main py-10 md:py-20 flex flex-col items-center justify-center min-h-[50vh]">
-      <h1 className="font-integral text-3xl md:text-5xl font-bold mb-4">Sign Up</h1>
-      <p className="text-gray-600 text-lg mb-6">Signup functionality is coming soon!</p>
-      <Link href="/" className="bg-primary text-white font-medium rounded-pill px-8 py-3 hover:opacity-80 transition-opacity">
-        Back to Home
-      </Link>
+    <main className="container-main py-12 md:py-20">
+      <div className="mx-auto max-w-md rounded-[32px] border border-black/10 bg-white p-6 shadow-xl md:p-9">
+        <h1 className="font-integral text-3xl font-bold">{mode === "signup" ? "CREATE ACCOUNT" : "SIGN IN"}</h1>
+        <p className="mt-2 text-black/50">{mode === "signup" ? "Create an account to track orders and save your cart." : "Welcome back to SHOP.CO."}</p>
+        {!configured && <div className="mt-5 rounded-2xl bg-amber-50 p-4 text-sm">Supabase is not configured.</div>}
+        <form onSubmit={submit} className="mt-7 space-y-4">
+          {mode === "signup" && <input required placeholder="Full name" value={form.name} onChange={(e)=>setForm({...form,name:e.target.value})} className="w-full rounded-full bg-[#f2f2f2] px-5 py-3.5" />}
+          <input required type="email" placeholder="Email" value={form.email} onChange={(e)=>setForm({...form,email:e.target.value})} className="w-full rounded-full bg-[#f2f2f2] px-5 py-3.5" />
+          <input required minLength={8} type="password" placeholder="Password" value={form.password} onChange={(e)=>setForm({...form,password:e.target.value})} className="w-full rounded-full bg-[#f2f2f2] px-5 py-3.5" />
+          {message && <div className="rounded-2xl bg-[#f2f2f2] p-3 text-sm">{message}</div>}
+          <button disabled={busy || !configured} className="w-full rounded-full bg-black py-3.5 font-semibold text-white disabled:opacity-40">{busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}</button>
+        </form>
+        <button disabled className="mt-3 w-full rounded-full border border-black/15 py-3.5 font-semibold opacity-40">Google sign-in — coming soon</button>
+        {mode === "signin" && <button onClick={recover} className="mt-4 w-full text-sm underline">Forgot password?</button>}
+        <button onClick={()=>{setMode(mode === "signup" ? "signin" : "signup");setMessage("");}} className="mt-5 w-full text-sm text-black/60 underline">{mode === "signup" ? "Already have an account? Sign in" : "New to SHOP.CO? Create account"}</button>
+      </div>
     </main>
   );
 }

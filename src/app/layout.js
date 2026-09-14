@@ -3,6 +3,7 @@ import { CartProvider } from '@/context/CartContext';
 import StorefrontChrome from '@/components/layout/StorefrontChrome';
 import { LanguageProvider } from '@/context/LanguageContext';
 import SiteTranslator from '@/components/common/SiteTranslator';
+import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata = {
   title: 'SHOP.CO | Find Clothes That Matches Your Style',
@@ -18,9 +19,11 @@ export default function RootLayout({ children }) {
       <body className="antialiased bg-white text-black min-h-screen flex flex-col">
         <LanguageProvider>
           <SiteTranslator />
-          <CartProvider>
-            <StorefrontChrome>{children}</StorefrontChrome>
-          </CartProvider>
+          <AuthProvider>
+            <CartProvider>
+              <StorefrontChrome>{children}</StorefrontChrome>
+            </CartProvider>
+          </AuthProvider>
         </LanguageProvider>
       </body>
     </html>
