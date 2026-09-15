@@ -10,6 +10,7 @@ import { assetPath } from '@/components/common/BaseImage';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { formatNotificationMessage } from '@/lib/notifications';
 
 const SEARCH_ALIASES = {
   джинсы: ['jeans'], джинсовые: ['jeans', 'denim'], джинсовый: ['jeans', 'denim'],
@@ -205,7 +206,7 @@ export default function Navbar() {
             )}
           </Link>
 
-          {user && <div className="relative"><button onClick={openNotifications} className="relative text-black hover:text-gray-600" aria-label="Notifications"><IoNotificationsOutline size={24} className="md:h-7 md:w-7"/>{unreadCount > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FF3333] px-1 text-[10px] font-bold text-white">{unreadCount}</span>}</button>{notificationsOpen && <div className="absolute right-0 top-10 z-[80] w-[min(340px,calc(100vw-32px))] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl"><div className="border-b border-black/10 px-4 py-3 font-bold">Notifications</div>{notifications.length ? <div className="max-h-80 overflow-y-auto">{notifications.map((item)=><Link key={item.id} href="/account" onClick={()=>setNotificationsOpen(false)} className="block border-b border-black/5 px-4 py-3 last:border-0 hover:bg-[#f2f2f2]"><p className="text-sm">{item.message}</p><span className="mt-1 block text-xs text-black/40">{new Date(item.created_at).toLocaleString()}</span></Link>)}</div> : <p className="px-4 py-5 text-sm text-black/50">No notifications yet.</p>}</div>}</div>}
+          {user && <div className="relative"><button onClick={openNotifications} className="relative text-black hover:text-gray-600" aria-label="Notifications"><IoNotificationsOutline size={24} className="md:h-7 md:w-7"/>{unreadCount > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FF3333] px-1 text-[10px] font-bold text-white">{unreadCount}</span>}</button>{notificationsOpen && <div className="absolute right-0 top-10 z-[80] w-[min(340px,calc(100vw-32px))] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl"><div className="border-b border-black/10 px-4 py-3 font-bold">Notifications</div>{notifications.length ? <div className="max-h-80 overflow-y-auto">{notifications.map((item)=><Link key={item.id} href="/account" onClick={()=>setNotificationsOpen(false)} className="block border-b border-black/5 px-4 py-3 last:border-0 hover:bg-[#f2f2f2]"><p className="text-sm">{formatNotificationMessage(item.message, language)}</p><span className="mt-1 block text-xs text-black/40">{new Date(item.created_at).toLocaleString()}</span></Link>)}</div> : <p className="px-4 py-5 text-sm text-black/50">No notifications yet.</p>}</div>}</div>}
           
           <Link href="/account" className="text-black hover:text-gray-600 transition-colors" aria-label="Account">
             <IoPersonOutline size={24} className="md:w-7 md:h-7" />
