@@ -79,6 +79,16 @@ create table if not exists public.product_reviews (
   unique(product_id, user_id)
 );
 
+create table if not exists public.order_notifications (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid references public.orders(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  message text not null check (char_length(message) between 1 and 2000),
+  sender text not null default 'system' check (sender in ('system', 'admin', 'customer')),
+  is_read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
 insert into public.promo_codes (code, discount_percent)
 values ('SALE20', 20), ('SALE30', 30), ('SALE50', 50)
 on conflict (code) do update set discount_percent = excluded.discount_percent;
@@ -90,6 +100,7 @@ alter table public.promo_codes enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
 alter table public.product_reviews enable row level security;
+alter table public.order_notifications enable row level security;
 
 create or replace function public.is_admin()
 returns boolean language sql stable security definer set search_path = public
@@ -116,6 +127,23 @@ create policy "users create own reviews" on public.product_reviews for insert to
 create policy "users update own reviews" on public.product_reviews for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "users delete own reviews" on public.product_reviews for delete to authenticated using (user_id = auth.uid());
 create policy "admins manage reviews" on public.product_reviews for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "users read own notifications" on public.order_notifications for select to authenticated using (user_id = auth.uid() or public.is_admin());
+create policy "users mark own notifications" on public.order_notifications for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "admins manage notifications" on public.order_notifications for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+create or replace function public.notify_order_created()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+begin
+  insert into public.order_notifications (order_id, user_id, sender, message)
+  values (new.id, new.user_id, 'system', 'Your order #' || left(new.id::text, 8) || ' has been reserved.');
+  return new;
+end;
+$$;
+
+drop trigger if exists on_order_created on public.orders;
+create trigger on_order_created after insert on public.orders for each row
+when (new.user_id is not null) execute procedure public.notify_order_created();
 
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public

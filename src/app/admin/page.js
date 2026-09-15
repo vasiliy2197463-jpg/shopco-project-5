@@ -41,6 +41,7 @@ export default function AdminPage() {
   const [promos, setPromos] = useState(promoDefaults);
   const [orders, setOrders] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [orderReplies, setOrderReplies] = useState({});
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
   const [showCreate, setShowCreate] = useState(false);
@@ -61,7 +62,7 @@ export default function AdminPage() {
       const [{ data: dbProducts }, { data: dbPromos }, { data: dbOrders }, { data: dbReviews }] = await Promise.all([
         supabase.from("products").select("*,product_variants(image_url)").order("id"),
         supabase.from("promo_codes").select("*").order("discount_percent"),
-        supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(50),
+        supabase.from("orders").select("*,order_items(*)").order("created_at", { ascending: false }).limit(50),
         supabase.from("product_reviews").select("*").order("created_at", { ascending: false }).limit(100),
       ]);
       if (dbProducts?.length) {
@@ -79,7 +80,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (!supabase || !isOwnerAdmin) return;
     const refreshOrders = async () => {
-      const { data } = await supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
+      const { data } = await supabase.from("orders").select("*,order_items(*)").order("created_at", { ascending: false }).limit(50);
       if (data) setOrders(data);
     };
     const timer = setInterval(refreshOrders, 15000);
@@ -182,6 +183,32 @@ export default function AdminPage() {
     setNotice("Отзыв удалён");
   };
 
+  const replyToOrder = async (order) => {
+    const message = orderReplies[order.id]?.trim();
+    if (!message) return;
+    const { error } = await supabase.from("order_notifications").insert({ order_id: order.id, user_id: order.user_id, message, sender: "admin" });
+    if (error) return setNotice(`Ошибка: ${error.message}`);
+    setOrderReplies((current) => ({ ...current, [order.id]: "" }));
+    setNotice("Ответ отправлен покупателю в уведомления");
+  };
+
+  const setOrderStatus = async (order, status) => {
+    const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
+    if (error) return setNotice(`Ошибка: ${error.message}`);
+    const statusText = { processing: "accepted and is being processed", completed: "completed", cancelled: "cancelled" }[status] || status;
+    await supabase.from("order_notifications").insert({ order_id: order.id, user_id: order.user_id, sender: "system", message: `Your order #${order.id.slice(0, 8)} is ${statusText}.` });
+    setOrders((current) => current.map((item) => item.id === order.id ? { ...item, status } : item));
+    setNotice("Статус заказа обновлён");
+  };
+
+  const deleteOrder = async (order) => {
+    if (!window.confirm(`Удалить заказ #${order.id.slice(0, 8)} навсегда?`)) return;
+    const { error } = await supabase.from("orders").delete().eq("id", order.id);
+    if (error) return setNotice(`Ошибка: ${error.message}`);
+    setOrders((current) => current.filter((item) => item.id !== order.id));
+    setNotice("Заказ удалён");
+  };
+
   const visibleProducts = products.filter((product) => !product.archived && product.name.toLowerCase().includes(query.toLowerCase()));
   const trashedProducts = products.filter((product) => product.archived);
   const inventoryValue = products.filter((product) => !product.archived).reduce((sum, item) => sum + Number(item.price) * Number(item.stock || 0), 0);
@@ -244,7 +271,7 @@ export default function AdminPage() {
 
           {!loading && tab === "reviews" && <><h1 className="mb-6 font-integral text-3xl font-bold md:text-5xl">ОТЗЫВЫ</h1>{reviews.length ? <div className="space-y-3">{reviews.map((review)=><div key={review.id} className="rounded-3xl bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-4"><div><div className="font-bold">{review.author_name} · {review.rating}/5</div><p className="mt-2 text-black/65">{review.comment}</p></div><button onClick={()=>deleteReview(review)} className="shrink-0 rounded-full border border-red-500 px-4 py-2 text-sm font-semibold text-red-600">Удалить</button></div></div>)}</div> : <div className="rounded-3xl bg-white p-10 text-center text-black/50">Отзывов пока нет</div>}</>}
 
-          {!loading && tab === "orders" && <><h1 className="mb-6 font-integral text-3xl font-bold md:text-5xl">ЗАКАЗЫ</h1>{orders.length ? <div className="space-y-3">{orders.map((order)=><div key={order.id} className="rounded-3xl bg-white p-5 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><div className="font-bold">Заказ #{order.id}</div><div className="text-sm text-black/50">{order.customer_email || "Без email"} · {order.created_at ? new Date(order.created_at).toLocaleString("ru-RU") : ""}</div></div><div className="text-right"><div className="text-xl font-bold">${Number(order.total || 0).toFixed(2)}</div><span className="rounded-full bg-[#d7ff5f] px-3 py-1 text-sm font-semibold">{order.status || "new"}</span></div></div></div>)}</div> : <div className="rounded-3xl bg-white p-10 text-center"><div className="text-2xl font-bold">Заказов пока нет</div><p className="mt-2 text-black/50">После бронирования новые заказы появятся здесь.</p></div>}</>}
+          {!loading && tab === "orders" && <><h1 className="mb-6 font-integral text-3xl font-bold md:text-5xl">ЗАКАЗЫ</h1>{orders.length ? <div className="space-y-4">{orders.map((order)=><div key={order.id} className="rounded-3xl bg-white p-5 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="font-bold">Заказ #{order.id.slice(0,8)}</div><div className="text-sm text-black/50">{order.customer_email || "Без email"} · {order.created_at ? new Date(order.created_at).toLocaleString("ru-RU") : ""}</div></div><div className="text-right"><div className="text-xl font-bold">${Number(order.total || 0).toFixed(2)}</div><span className="rounded-full bg-[#d7ff5f] px-3 py-1 text-sm font-semibold">{order.status || "new"}</span></div></div>{order.order_items?.length ? <div className="mt-4 border-t border-black/10 pt-4"><div className="text-sm font-bold">Состав заказа</div>{order.order_items.map((item)=><div key={item.id} className="mt-2 flex justify-between gap-4 text-sm text-black/65"><span>{item.product_name} · {item.color || "—"} · {item.size || "—"}</span><span>{item.quantity} × ${item.unit_price}</span></div>)}</div> : null}<div className="mt-5 flex flex-wrap gap-2"><button onClick={()=>setOrderStatus(order,"processing")} className="rounded-full bg-black px-4 py-2 text-sm font-semibold text-white">Принять</button><button onClick={()=>setOrderStatus(order,"completed")} className="rounded-full bg-[#d7ff5f] px-4 py-2 text-sm font-semibold">Завершить</button><button onClick={()=>setOrderStatus(order,"cancelled")} className="rounded-full border border-black/20 px-4 py-2 text-sm font-semibold">Отменить</button><button onClick={()=>deleteOrder(order)} className="rounded-full border border-red-500 px-4 py-2 text-sm font-semibold text-red-600">Удалить</button></div><div className="mt-4 flex flex-col gap-2 sm:flex-row"><input value={orderReplies[order.id] || ""} onChange={(event)=>setOrderReplies((current)=>({...current,[order.id]:event.target.value}))} placeholder="Напишите сообщение покупателю…" className="min-w-0 flex-1 rounded-full bg-[#f2f2f2] px-5 py-3 outline-none"/><button onClick={()=>replyToOrder(order)} className="rounded-full bg-black px-6 py-3 font-semibold text-white">Ответить</button></div></div>)}</div> : <div className="rounded-3xl bg-white p-10 text-center"><div className="text-2xl font-bold">Заказов пока нет</div><p className="mt-2 text-black/50">После бронирования новые заказы появятся здесь.</p></div>}</>}
         </section>
       </div>
     </main>

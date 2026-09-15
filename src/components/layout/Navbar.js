@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useCatalog } from '@/context/CatalogContext';
-import { IoSearchOutline, IoCartOutline, IoPersonOutline, IoMenuOutline, IoClose, IoChevronDown } from 'react-icons/io5';
+import { IoSearchOutline, IoCartOutline, IoPersonOutline, IoMenuOutline, IoClose, IoChevronDown, IoNotificationsOutline } from 'react-icons/io5';
 import { assetPath } from '@/components/common/BaseImage';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 const SEARCH_ALIASES = {
   джинсы: ['jeans'], джинсовые: ['jeans', 'denim'], джинсовый: ['jeans', 'denim'],
@@ -57,6 +59,10 @@ export default function Navbar() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const router = useRouter();
   const { language, changeLanguage } = useLanguage();
+  const { user } = useAuth();
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   
   const { items } = useCart();
   const cartCount = items?.reduce((total, item) => total + (item.quantity || 1), 0) || 0;
@@ -86,6 +92,28 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!user || !supabase) { setNotifications([]); return; }
+    const loadNotifications = async () => {
+      const { data } = await supabase.from('order_notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20);
+      if (data) setNotifications(data);
+    };
+    loadNotifications();
+    const timer = setInterval(loadNotifications, 15000);
+    return () => clearInterval(timer);
+  }, [user, supabase]);
+
+  const openNotifications = async () => {
+    const nextOpen = !notificationsOpen;
+    setNotificationsOpen(nextOpen);
+    if (nextOpen && user && supabase && notifications.some((item) => !item.is_read)) {
+      await supabase.from('order_notifications').update({ is_read: true }).eq('user_id', user.id).eq('is_read', false);
+      setNotifications((current) => current.map((item) => ({ ...item, is_read: true })));
+    }
+  };
+
+  const unreadCount = notifications.filter((item) => !item.is_read).length;
 
   return (
     <nav className={`sticky top-0 z-40 bg-white transition-all ${isScrolled ? 'border-b border-[rgba(0,0,0,0.1)] shadow-sm' : ''}`}>
@@ -176,6 +204,8 @@ export default function Navbar() {
               </span>
             )}
           </Link>
+
+          {user && <div className="relative"><button onClick={openNotifications} className="relative text-black hover:text-gray-600" aria-label="Notifications"><IoNotificationsOutline size={24} className="md:h-7 md:w-7"/>{unreadCount > 0 && <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FF3333] px-1 text-[10px] font-bold text-white">{unreadCount}</span>}</button>{notificationsOpen && <div className="absolute right-0 top-10 z-[80] w-[min(340px,calc(100vw-32px))] overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl"><div className="border-b border-black/10 px-4 py-3 font-bold">Notifications</div>{notifications.length ? <div className="max-h-80 overflow-y-auto">{notifications.map((item)=><Link key={item.id} href="/account" onClick={()=>setNotificationsOpen(false)} className="block border-b border-black/5 px-4 py-3 last:border-0 hover:bg-[#f2f2f2]"><p className="text-sm">{item.message}</p><span className="mt-1 block text-xs text-black/40">{new Date(item.created_at).toLocaleString()}</span></Link>)}</div> : <p className="px-4 py-5 text-sm text-black/50">No notifications yet.</p>}</div>}</div>}
           
           <Link href="/account" className="text-black hover:text-gray-600 transition-colors" aria-label="Account">
             <IoPersonOutline size={24} className="md:w-7 md:h-7" />
