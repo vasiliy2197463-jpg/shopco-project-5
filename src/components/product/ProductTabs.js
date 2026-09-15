@@ -1,145 +1,36 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import ReviewCard from '@/components/cards/ReviewCard';
-import Button from '@/components/common/Button';
-import { IoFilter, IoChevronDown } from 'react-icons/io5';
 import { FaStar } from 'react-icons/fa';
+import ReviewCard from '@/components/cards/ReviewCard';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
+const words = {
+  en: { details:'Product Details', reviews:'Rating & Reviews', faq:'Questions & Answers', leave:'Leave a review', all:'All Reviews', write:'Write a Review', rate:'Rate this product', comment:'Write your comment...', publish:'Publish review', publishing:'Publishing...', published:'Your review has been published.', loginReview:'Sign in to rate this product and write a review.', login:'Sign in', questions:'Questions about this product', ask:'Ask a question', question:'Write your question for the store...', send:'Send question', sending:'Sending...', sent:'Your question has been sent.', loginQuestion:'Sign in to ask the store a question.', none:'No questions yet. Be the first to ask.', waiting:'Waiting for the administrator’s answer', answer:'Store answer', posted:'Posted on', fallback:'A quality product created for comfort and everyday style.', features:['Premium quality materials','Comfortable fit for all-day wear','Durable and long-lasting','Machine washable'], returnQ:'What is the return policy?', returnA:'You can return any unworn items within 30 days of delivery for a full refund.', trackQ:'How do I track my order?', trackA:'Once your order ships, you will receive a tracking link via email.', error:'Error' },
+  ru: { details:'Описание товара', reviews:'Рейтинг и отзывы', faq:'Вопросы и ответы', leave:'Оставить отзыв', all:'Все отзывы', write:'Написать отзыв', rate:'Оцените этот товар', comment:'Напишите ваш отзыв...', publish:'Опубликовать отзыв', publishing:'Публикуем…', published:'Ваш отзыв опубликован.', loginReview:'Войдите, чтобы оценить товар и написать отзыв.', login:'Войти', questions:'Вопросы об этом товаре', ask:'Задать вопрос', question:'Напишите вопрос магазину...', send:'Отправить вопрос', sending:'Отправляем…', sent:'Ваш вопрос отправлен.', loginQuestion:'Войдите, чтобы задать вопрос магазину.', none:'Вопросов пока нет. Задайте первый вопрос.', waiting:'Ожидает ответа администратора', answer:'Ответ магазина', posted:'Опубликовано', fallback:'Качественный товар, созданный для комфорта и стильного повседневного образа.', features:['Качественные материалы','Удобная посадка на весь день','Прочность и долгий срок службы','Можно стирать в стиральной машине'], returnQ:'Как вернуть товар?', returnA:'Неношеный товар можно вернуть в течение 30 дней после доставки и получить полный возврат средств.', trackQ:'Как отследить заказ?', trackA:'После отправки заказа вы получите ссылку для отслеживания по электронной почте.', error:'Ошибка' }
+};
+
 export default function ProductTabs({ product, reviews = [], onSummaryChange }) {
-  const [activeTab, setActiveTab] = useState('Product Details');
-  const [liveReviews, setLiveReviews] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
-  const [notice, setNotice] = useState('');
-  const [saving, setSaving] = useState(false);
-  const { user, profile } = useAuth();
-  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
-
-  const loadReviews = async () => {
-    if (!supabase || !product?.id) return;
-    const { data } = await supabase.from('product_reviews').select('*').eq('product_id', product.id).order('created_at', { ascending: false });
-    if (data) setLiveReviews(data.map((item) => ({ id: item.id, author: item.author_name || 'SHOP.CO customer', rating: item.rating, verified: true, date: new Date(item.created_at).toLocaleDateString(), content: item.comment, userId: item.user_id })));
-  };
-
-  useEffect(() => { loadReviews(); }, [product?.id, supabase]);
-
-  const displayedReviews = liveReviews.length ? liveReviews : reviews;
-  const averageRating = liveReviews.length ? liveReviews.reduce((sum, item) => sum + item.rating, 0) / liveReviews.length : product?.rating || 0;
-
-  useEffect(() => {
-    onSummaryChange?.({ rating: averageRating, count: displayedReviews.length });
-  }, [averageRating, displayedReviews.length, onSummaryChange]);
-
-  const submitReview = async (event) => {
-    event.preventDefault();
-    if (!user || !supabase || !rating || !comment.trim()) return;
-    setSaving(true);
-    const authorName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'SHOP.CO customer';
-    const { error } = await supabase.from('product_reviews').upsert({ product_id: product.id, user_id: user.id, author_name: authorName, rating, comment: comment.trim() }, { onConflict: 'product_id,user_id' });
-    setSaving(false);
-    if (error) { setNotice(`Error: ${error.message}`); return; }
-    setNotice('Your review has been published.');
-    setComment('');
-    setRating(0);
-    setShowForm(false);
-    await loadReviews();
-  };
-
-  const tabs = ['Product Details', 'Rating & Reviews', 'FAQs'];
-
-  return (
-    <div className="w-full">
-      {/* Tab Bar */}
-      <div className="flex border-b border-border overflow-x-auto no-scrollbar">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-6 py-4 text-base font-medium cursor-pointer transition-colors whitespace-nowrap flex-1 -mb-[1px] ${
-              activeTab === tab
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Content Area */}
-      <div className="pt-8">
-        {activeTab === 'Product Details' && (
-          <div className="space-y-4 text-gray-700 leading-relaxed">
-            <p>{product?.description || 'This is a premium product built for comfort and style. Ideal for daily wear. Made with high-quality materials to ensure longevity and maximum satisfaction.'}</p>
-            <ul className="list-disc pl-6 space-y-2 mt-4">
-              <li>Premium quality materials</li>
-              <li>Comfortable fit for all-day wear</li>
-              <li>Durable and long-lasting</li>
-              <li>Machine washable</li>
-            </ul>
-          </div>
-        )}
-
-        {activeTab === 'Rating & Reviews' && (
-          <div>
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                All Reviews <span className="text-sm font-normal text-gray-500">({displayedReviews.length})</span>
-              </h3>
-              <div className="flex items-center gap-3">
-                <button className="w-12 h-12 rounded-full bg-gray-bg flex items-center justify-center hover:bg-gray-300 transition" aria-label="Filter reviews">
-                  <IoFilter size={20} />
-                </button>
-                <div className="hidden md:flex items-center gap-2 bg-gray-bg px-4 py-3 rounded-pill cursor-pointer hover:bg-gray-300 transition">
-                  <span className="font-medium text-sm">Latest</span>
-                  <IoChevronDown size={16} />
-                </div>
-                <Button variant="primary" onClick={() => setShowForm((value) => !value)} className="text-sm px-6 py-3">Write a Review</Button>
-              </div>
-            </div>
-
-            {notice && <div className="mb-5 rounded-2xl bg-[#d7ff5f] px-5 py-3 font-medium">{notice}</div>}
-            {showForm && (user ? <form onSubmit={submitReview} className="mb-7 rounded-3xl border border-black/10 p-5 md:p-7">
-              <h4 className="text-xl font-bold">Rate this product</h4>
-              <div className="mt-4 flex gap-2">{[1,2,3,4,5].map((value) => <button key={value} type="button" onClick={() => setRating(value)} className={`text-3xl transition-transform hover:scale-110 ${value <= rating ? 'text-[#FFC633]' : 'text-black/15'}`} aria-label={`${value} stars`}><FaStar /></button>)}</div>
-              <textarea required value={comment} onChange={(event) => setComment(event.target.value)} rows="4" placeholder="Write your comment..." className="mt-5 w-full resize-none rounded-2xl bg-[#f2f2f2] p-4 outline-none focus:ring-2 focus:ring-black" />
-              <button disabled={!rating || saving} className="mt-4 rounded-full bg-black px-7 py-3 font-semibold text-white disabled:opacity-40">{saving ? 'Publishing...' : 'Publish review'}</button>
-            </form> : <div className="mb-7 rounded-3xl border border-black/10 p-6"><p className="font-medium">Sign in to rate this product and write a comment.</p><Link href="/signup" className="mt-4 inline-block rounded-full bg-black px-6 py-3 font-semibold text-white">Sign in</Link></div>)}
-
-            {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-              {displayedReviews.map((review, idx) => (
-                <ReviewCard key={review.id || idx} review={review} />
-              ))}
-            </div>
-
-            {/* Load More */}
-            <div className="flex justify-center">
-              <Button variant="outline" className="w-full md:w-auto px-8 py-3">
-                Load More Reviews
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'FAQs' && (
-          <div className="space-y-6">
-            <div className="border border-border rounded-xl p-5">
-              <h4 className="font-bold mb-2">What is the return policy?</h4>
-              <p className="text-gray-600">You can return any unworn items within 30 days of delivery for a full refund.</p>
-            </div>
-            <div className="border border-border rounded-xl p-5">
-              <h4 className="font-bold mb-2">How do I track my order?</h4>
-              <p className="text-gray-600">Once your order ships, you will receive a tracking link via email.</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  const { language } = useLanguage(); const t = words[language] || words.en;
+  const { user, profile } = useAuth(); const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+  const [tab,setTab]=useState('details'), [liveReviews,setLiveReviews]=useState([]), [questions,setQuestions]=useState([]);
+  const [showReview,setShowReview]=useState(false), [rating,setRating]=useState(0), [comment,setComment]=useState(''), [question,setQuestion]=useState('');
+  const [notice,setNotice]=useState(''), [questionNotice,setQuestionNotice]=useState(''), [busy,setBusy]=useState(false);
+  const author = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'SHOP.CO customer';
+  const loadReviews=useCallback(async()=>{ if(!supabase||!product?.id)return; const {data}=await supabase.from('product_reviews').select('*').eq('product_id',product.id).order('created_at',{ascending:false}); if(data)setLiveReviews(data.map(x=>({id:x.id,author:x.author_name,rating:x.rating,verified:true,date:new Date(x.created_at).toLocaleDateString(language==='ru'?'ru-RU':'en-US'),content:x.comment}))); },[supabase,product?.id,language]);
+  const loadQuestions=useCallback(async()=>{ if(!supabase||!product?.id)return; const {data}=await supabase.from('product_questions').select('*').eq('product_id',product.id).order('created_at',{ascending:false}); if(data)setQuestions(data); },[supabase,product?.id]);
+  useEffect(()=>{loadReviews();loadQuestions();},[loadReviews,loadQuestions]);
+  const shown=liveReviews.length?liveReviews:reviews, average=liveReviews.length?liveReviews.reduce((s,x)=>s+x.rating,0)/liveReviews.length:product?.rating||0;
+  useEffect(()=>onSummaryChange?.({rating:average,count:shown.length}),[average,shown.length,onSummaryChange]);
+  const submitReview=async e=>{e.preventDefault();if(!user||!rating||!comment.trim())return;setBusy(true);const {error}=await supabase.from('product_reviews').upsert({product_id:product.id,user_id:user.id,author_name:author,rating,comment:comment.trim()},{onConflict:'product_id,user_id'});setBusy(false);if(error)return setNotice(`${t.error}: ${error.message}`);setNotice(t.published);setComment('');setRating(0);setShowReview(false);loadReviews();};
+  const submitQuestion=async e=>{e.preventDefault();if(!user||!question.trim())return;setBusy(true);const {error}=await supabase.from('product_questions').insert({product_id:product.id,user_id:user.id,author_name:author,question:question.trim()});setBusy(false);if(error)return setQuestionNotice(`${t.error}: ${error.message}`);setQuestion('');setQuestionNotice(t.sent);loadQuestions();};
+  const openReview=()=>{setTab('reviews');setShowReview(true);setTimeout(()=>document.querySelector('#review-form')?.scrollIntoView({behavior:'smooth',block:'center'}),50)};
+  const tabs=[['details',t.details],['reviews',t.reviews],['faq',t.faq]];
+  return <div className="w-full"><div className="flex overflow-x-auto border-b border-border">{tabs.map(([id,label])=><button key={id} onClick={()=>setTab(id)} className={`-mb-px flex-1 whitespace-nowrap px-4 py-4 font-medium ${tab===id?'border-b-2 border-black text-black':'text-gray-500'}`}>{label}</button>)}</div><div className="pt-8">
+    {tab==='details'&&<div className="space-y-4 text-gray-700"><p>{product?.description||t.fallback}</p><ul className="list-disc space-y-2 pl-6">{t.features.map(x=><li key={x}>{x}</li>)}</ul><button onClick={openReview} className="mt-5 rounded-full bg-black px-7 py-3 font-semibold text-white">★ {t.leave}</button></div>}
+    {tab==='reviews'&&<div><div className="mb-6 flex flex-wrap items-center justify-between gap-3"><h3 className="text-xl font-bold">{t.all} <span className="text-sm font-normal text-gray-500">({shown.length})</span></h3><button onClick={()=>setShowReview(v=>!v)} className="rounded-full bg-black px-6 py-3 font-semibold text-white">{t.write}</button></div>{notice&&<p className="mb-5 rounded-2xl bg-[#d7ff5f] p-4">{notice}</p>}{showReview&&(user?<form id="review-form" onSubmit={submitReview} className="mb-7 rounded-3xl border p-6"><h4 className="text-xl font-bold">{t.rate}</h4><div className="mt-4 flex gap-2">{[1,2,3,4,5].map(n=><button type="button" key={n} onClick={()=>setRating(n)} className={`text-3xl ${n<=rating?'text-[#FFC633]':'text-black/15'}`}><FaStar/></button>)}</div><textarea required value={comment} onChange={e=>setComment(e.target.value)} placeholder={t.comment} rows="4" className="mt-5 w-full rounded-2xl bg-[#f2f2f2] p-4"/><button disabled={busy||!rating} className="mt-4 rounded-full bg-black px-7 py-3 font-semibold text-white disabled:opacity-40">{busy?t.publishing:t.publish}</button></form>:<div id="review-form" className="mb-7 rounded-3xl border p-6"><p>{t.loginReview}</p><Link href="/signup" className="mt-4 inline-block rounded-full bg-black px-6 py-3 text-white">{t.login}</Link></div>)}<div className="grid gap-5 md:grid-cols-2">{shown.map((r,i)=><ReviewCard key={r.id||i} review={r}/>)}</div></div>}
+    {tab==='faq'&&<div className="space-y-5"><h3 className="text-2xl font-bold">{t.questions}</h3>{questionNotice&&<p className="rounded-2xl bg-[#d7ff5f] p-4">{questionNotice}</p>}{user?<form onSubmit={submitQuestion} className="rounded-3xl border p-5"><label className="font-bold">{t.ask}</label><textarea required minLength="2" value={question} onChange={e=>setQuestion(e.target.value)} placeholder={t.question} rows="3" className="mt-3 w-full rounded-2xl bg-[#f2f2f2] p-4"/><button disabled={busy||!question.trim()} className="mt-3 rounded-full bg-black px-6 py-3 font-semibold text-white">{busy?t.sending:t.send}</button></form>:<div className="rounded-3xl border p-5"><p>{t.loginQuestion}</p><Link href="/signup" className="mt-3 inline-block rounded-full bg-black px-6 py-3 text-white">{t.login}</Link></div>}{questions.length?questions.map(q=><div key={q.id} className="rounded-2xl border p-5"><div className="text-sm text-black/45">{q.author_name}</div><h4 className="mt-2 font-bold">{q.question}</h4>{q.answer?<div className="mt-4 rounded-2xl bg-[#f2f2f2] p-4"><b className="text-xs uppercase">{t.answer}</b><p className="mt-1">{q.answer}</p></div>:<p className="mt-3 text-sm text-black/45">{t.waiting}</p>}</div>):<p className="rounded-2xl bg-[#f7f7f7] p-5 text-black/50">{t.none}</p>}<div className="rounded-xl border p-5"><b>{t.returnQ}</b><p className="mt-2 text-gray-600">{t.returnA}</p></div><div className="rounded-xl border p-5"><b>{t.trackQ}</b><p className="mt-2 text-gray-600">{t.trackA}</p></div></div>}
+  </div></div>;
 }

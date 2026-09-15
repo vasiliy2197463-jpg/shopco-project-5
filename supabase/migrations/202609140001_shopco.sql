@@ -86,6 +86,14 @@ create table if not exists public.order_notifications (
   message text not null check (char_length(message) between 1 and 2000),
   sender text not null default 'system' check (sender in ('system', 'admin', 'customer')),
   is_read boolean not null default false,
+  allow_reply boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.product_questions (
+  id uuid primary key default gen_random_uuid(), product_id bigint not null references public.products(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade, author_name text not null,
+  question text not null check (char_length(question) between 2 and 2000), answer text, answered_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -101,6 +109,7 @@ alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
 alter table public.product_reviews enable row level security;
 alter table public.order_notifications enable row level security;
+alter table public.product_questions enable row level security;
 
 create or replace function public.is_admin()
 returns boolean language sql stable security definer set search_path = public
@@ -130,6 +139,12 @@ create policy "admins manage reviews" on public.product_reviews for all to authe
 create policy "users read own notifications" on public.order_notifications for select to authenticated using (user_id = auth.uid() or public.is_admin());
 create policy "users mark own notifications" on public.order_notifications for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "admins manage notifications" on public.order_notifications for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "customers reply to own orders" on public.order_notifications for insert to authenticated with check (
+  user_id = auth.uid() and sender = 'customer' and exists (select 1 from public.orders where orders.id = order_notifications.order_id and orders.user_id = auth.uid())
+);
+create policy "public reads product questions" on public.product_questions for select using (true);
+create policy "users create own product questions" on public.product_questions for insert to authenticated with check (user_id = auth.uid());
+create policy "admins manage product questions" on public.product_questions for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 create or replace function public.notify_order_created()
 returns trigger language plpgsql security definer set search_path = public

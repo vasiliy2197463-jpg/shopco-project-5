@@ -1,7 +1,9 @@
 import { IoCheckmarkCircle } from 'react-icons/io5';
 import RatingStars from '@/components/common/RatingStars';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function ReviewCard({ review }) {
+  const { language } = useLanguage();
   return (
     <div className="border border-border rounded-[20px] p-6 md:p-8 bg-white h-full flex flex-col">
       <div className="mb-4">
@@ -17,7 +19,7 @@ export default function ReviewCard({ review }) {
         "{review.text || review.content}"
       </p>
       <p className="text-gray-500 text-sm mt-auto">
-        Posted on {review.date}
+        {language === 'ru' ? 'Опубликовано' : 'Posted on'} {review.date}
       </p>
     </div>
   );
