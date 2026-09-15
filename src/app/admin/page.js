@@ -25,6 +25,7 @@ function normalizeProduct(product) {
     rating: product.rating || 0,
     stock: product.stock ?? 25,
     active: product.active !== false,
+    archived: product.archived === true,
     image: product.images?.[0] || product.availableColors?.[0]?.image,
     variants: product.availableColors?.length || 0,
   };
@@ -39,6 +40,7 @@ export default function AdminPage() {
   const [products, setProducts] = useState(sourceProducts.map(normalizeProduct));
   const [promos, setPromos] = useState(promoDefaults);
   const [orders, setOrders] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
   const [showCreate, setShowCreate] = useState(false);
@@ -56,10 +58,11 @@ export default function AdminPage() {
         setLoading(false);
         return;
       }
-      const [{ data: dbProducts }, { data: dbPromos }, { data: dbOrders }] = await Promise.all([
+      const [{ data: dbProducts }, { data: dbPromos }, { data: dbOrders }, { data: dbReviews }] = await Promise.all([
         supabase.from("products").select("*,product_variants(image_url)").order("id"),
         supabase.from("promo_codes").select("*").order("discount_percent"),
         supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(50),
+        supabase.from("product_reviews").select("*").order("created_at", { ascending: false }).limit(100),
       ]);
       if (dbProducts?.length) {
         const sourceById = new Map(sourceProducts.map((product) => [product.id, normalizeProduct(product)]));
@@ -67,10 +70,21 @@ export default function AdminPage() {
       }
       if (dbPromos?.length) setPromos(dbPromos);
       if (dbOrders) setOrders(dbOrders);
+      if (dbReviews) setReviews(dbReviews);
       setLoading(false);
     };
     load();
   }, [supabase]);
+
+  useEffect(() => {
+    if (!supabase || !isOwnerAdmin) return;
+    const refreshOrders = async () => {
+      const { data } = await supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
+      if (data) setOrders(data);
+    };
+    const timer = setInterval(refreshOrders, 15000);
+    return () => clearInterval(timer);
+  }, [supabase, isOwnerAdmin]);
 
   const updateProduct = (id, field, value) => {
     setProducts((current) => current.map((item) => item.id === id ? { ...item, [field]: value } : item));
@@ -137,8 +151,41 @@ export default function AdminPage() {
     }
   };
 
-  const visibleProducts = products.filter((product) => product.name.toLowerCase().includes(query.toLowerCase()));
-  const inventoryValue = products.reduce((sum, item) => sum + Number(item.price) * Number(item.stock || 0), 0);
+  const moveToTrash = async (product) => {
+    if (!window.confirm(`Переместить «${product.name}» в корзину? Товар исчезнет из магазина.`)) return;
+    const { error } = await supabase.from("products").update({ archived: true, active: false }).eq("id", product.id);
+    if (error) return setNotice(`Ошибка: ${error.message}`);
+    setProducts((current) => current.map((item) => item.id === product.id ? { ...item, archived: true, active: false } : item));
+    setNotice("Товар перемещён в корзину и снят с публикации");
+  };
+
+  const restoreProduct = async (product) => {
+    const { error } = await supabase.from("products").update({ archived: false, active: true }).eq("id", product.id);
+    if (error) return setNotice(`Ошибка: ${error.message}`);
+    setProducts((current) => current.map((item) => item.id === product.id ? { ...item, archived: false, active: true } : item));
+    setNotice("Товар восстановлен и опубликован");
+  };
+
+  const deleteProductForever = async (product) => {
+    if (!window.confirm(`Удалить «${product.name}» навсегда? Это действие нельзя отменить.`)) return;
+    const { error } = await supabase.from("products").delete().eq("id", product.id);
+    if (error) return setNotice(`Ошибка: ${error.message}`);
+    setProducts((current) => current.filter((item) => item.id !== product.id));
+    setNotice("Товар окончательно удалён");
+  };
+
+  const deleteReview = async (review) => {
+    if (!window.confirm("Удалить этот отзыв?")) return;
+    const { error } = await supabase.from("product_reviews").delete().eq("id", review.id);
+    if (error) return setNotice(`Ошибка: ${error.message}`);
+    setReviews((current) => current.filter((item) => item.id !== review.id));
+    setNotice("Отзыв удалён");
+  };
+
+  const visibleProducts = products.filter((product) => !product.archived && product.name.toLowerCase().includes(query.toLowerCase()));
+  const trashedProducts = products.filter((product) => product.archived);
+  const inventoryValue = products.filter((product) => !product.archived).reduce((sum, item) => sum + Number(item.price) * Number(item.stock || 0), 0);
+  const newOrders = orders.filter((order) => order.status === "new" || order.status === "pending").length;
 
   if (authLoading) return <main className="flex min-h-screen items-center justify-center bg-[#f5f5f5] text-lg font-semibold">Проверка доступа…</main>;
   if (!user || !isOwnerAdmin) return <main className="flex min-h-screen items-center justify-center bg-[#f5f5f5] px-5"><div className="max-w-lg rounded-[32px] bg-white p-8 text-center shadow-sm"><h1 className="font-integral text-3xl font-bold">Доступ закрыт</h1><p className="mt-3 text-black/55">Панель доступна только владельцу магазина.</p><a href={assetPath("/account/")} className="mt-6 inline-block rounded-full bg-black px-7 py-3 font-semibold text-white">Войти в аккаунт</a></div></main>;
@@ -154,7 +201,7 @@ export default function AdminPage() {
 
       <div className="mx-auto grid max-w-[1440px] gap-6 px-5 py-8 lg:grid-cols-[220px_1fr] lg:px-10">
         <aside className="h-fit rounded-3xl bg-black p-3 text-white lg:sticky lg:top-24">
-          {[["overview","Обзор"],["products","Товары"],["promos","Промокоды"],["orders","Заказы"]].map(([id,label]) => (
+          {[["overview","Обзор"],["products","Товары"],["trash",`Корзина (${trashedProducts.length})`],["promos","Промокоды"],["reviews",`Отзывы (${reviews.length})`],["orders",`Заказы${newOrders ? ` (${newOrders})` : ""}`]].map(([id,label]) => (
             <button key={id} onClick={() => setTab(id)} className={`w-full rounded-2xl px-4 py-3 text-left font-semibold ${tab === id ? "bg-white text-black" : "text-white/70 hover:bg-white/10"}`}>{label}</button>
           ))}
           <div className="mt-4 border-t border-white/15 px-4 pt-4 text-xs text-white/50">{supabase ? "Supabase подключён" : "Локальный режим"}</div>
@@ -188,12 +235,16 @@ export default function AdminPage() {
               </div>
             </form>}
             <input value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Найти товар…" className="mb-5 w-full rounded-full border border-black/10 bg-white px-5 py-3" />
-            <div className="overflow-hidden rounded-3xl bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left"><thead className="bg-black text-white"><tr><th className="p-4">Товар</th><th className="p-4">Цена</th><th className="p-4">Остаток</th><th className="p-4">Цветов</th><th className="p-4">Опубликован</th></tr></thead><tbody>{visibleProducts.map((product)=><tr key={product.id} className="border-b border-black/5"><td className="p-4"><div className="flex items-center gap-3">{product.image && <img src={assetPath(product.image)} alt="" className="h-14 w-14 rounded-xl bg-[#eee] object-cover"/>}<div><div className="font-bold">{product.name}</div><div className="text-xs text-black/45">{product.category}</div></div></div></td><td className="p-4"><input type="number" value={product.price} onChange={(e)=>updateProduct(product.id,"price",Number(e.target.value))} className="w-24 rounded-xl bg-[#f2f2f2] px-3 py-2"/></td><td className="p-4"><input type="number" value={product.stock} onChange={(e)=>updateProduct(product.id,"stock",Number(e.target.value))} className="w-24 rounded-xl bg-[#f2f2f2] px-3 py-2"/></td><td className="p-4">{product.variants || "—"}</td><td className="p-4"><button onClick={()=>updateProduct(product.id,"active",!product.active)} className={`rounded-full px-4 py-2 text-sm font-semibold ${product.active ? "bg-[#d7ff5f]" : "bg-black/10"}`}>{product.active ? "Да" : "Нет"}</button></td></tr>)}</tbody></table></div></div>
+            <div className="overflow-hidden rounded-3xl bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-left"><thead className="bg-black text-white"><tr><th className="p-4">Товар</th><th className="p-4">Цена</th><th className="p-4">Остаток</th><th className="p-4">Цветов</th><th className="p-4">Опубликован</th><th className="p-4">Действие</th></tr></thead><tbody>{visibleProducts.map((product)=><tr key={product.id} className="border-b border-black/5"><td className="p-4"><div className="flex items-center gap-3">{product.image && <img src={assetPath(product.image)} alt="" className="h-14 w-14 rounded-xl bg-[#eee] object-cover"/>}<div><div className="font-bold">{product.name}</div><div className="text-xs text-black/45">{product.category}</div></div></div></td><td className="p-4"><input type="number" value={product.price} onChange={(e)=>updateProduct(product.id,"price",Number(e.target.value))} className="w-24 rounded-xl bg-[#f2f2f2] px-3 py-2"/></td><td className="p-4"><input type="number" value={product.stock} onChange={(e)=>updateProduct(product.id,"stock",Number(e.target.value))} className="w-24 rounded-xl bg-[#f2f2f2] px-3 py-2"/></td><td className="p-4">{product.variants || "—"}</td><td className="p-4"><button onClick={()=>updateProduct(product.id,"active",!product.active)} className={`rounded-full px-4 py-2 text-sm font-semibold ${product.active ? "bg-[#d7ff5f]" : "bg-black/10"}`}>{product.active ? "Да" : "Нет"}</button></td><td className="p-4"><button onClick={()=>moveToTrash(product)} className="rounded-full border border-red-500 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-500 hover:text-white">В корзину</button></td></tr>)}</tbody></table></div></div>
           </>}
+
+          {!loading && tab === "trash" && <><h1 className="mb-2 font-integral text-3xl font-bold md:text-5xl">КОРЗИНА ТОВАРОВ</h1><p className="mb-6 text-black/50">Эти товары скрыты из магазина. Их можно восстановить или удалить навсегда.</p>{trashedProducts.length ? <div className="space-y-3">{trashedProducts.map((product)=><div key={product.id} className="flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-sm sm:flex-row sm:items-center"><div className="flex flex-1 items-center gap-4">{product.image && <img src={assetPath(product.image)} alt="" className="h-16 w-16 rounded-xl bg-[#eee] object-cover"/>}<div><div className="font-bold">{product.name}</div><div className="text-sm text-black/45">${product.price} · {product.stock} шт.</div></div></div><div className="flex gap-2"><button onClick={()=>restoreProduct(product)} className="rounded-full bg-[#d7ff5f] px-5 py-2 font-semibold">Восстановить</button><button onClick={()=>deleteProductForever(product)} className="rounded-full bg-red-600 px-5 py-2 font-semibold text-white">Удалить навсегда</button></div></div>)}</div> : <div className="rounded-3xl bg-white p-10 text-center text-black/50">Корзина пуста</div>}</>}
 
           {!loading && tab === "promos" && <><div className="mb-6 flex items-end justify-between"><div><h1 className="font-integral text-3xl font-bold md:text-5xl">ПРОМОКОДЫ</h1><p className="mt-2 text-black/50">Управление скидками</p></div><button onClick={savePromos} className="rounded-full bg-black px-7 py-3 font-semibold text-white">Сохранить</button></div><div className="grid gap-4 md:grid-cols-3">{promos.map((promo,index)=><div key={promo.code} className="rounded-3xl bg-white p-6 shadow-sm"><input value={promo.code} onChange={(e)=>setPromos(p=>p.map((x,i)=>i===index?{...x,code:e.target.value.toUpperCase()}:x))} className="w-full border-b border-black/10 pb-2 text-2xl font-bold"/><label className="mt-5 block text-sm text-black/50">Размер скидки</label><div className="mt-2 flex items-center gap-2"><input type="number" min="1" max="100" value={promo.discount_percent} onChange={(e)=>setPromos(p=>p.map((x,i)=>i===index?{...x,discount_percent:Number(e.target.value)}:x))} className="w-24 rounded-xl bg-[#f2f2f2] px-3 py-2"/><span>%</span></div><button onClick={()=>setPromos(p=>p.map((x,i)=>i===index?{...x,active:!x.active}:x))} className={`mt-5 rounded-full px-4 py-2 text-sm font-semibold ${promo.active?"bg-[#d7ff5f]":"bg-black/10"}`}>{promo.active?"Активен":"Выключен"}</button></div>)}</div></>}
 
-          {!loading && tab === "orders" && <><h1 className="mb-6 font-integral text-3xl font-bold md:text-5xl">ЗАКАЗЫ</h1>{orders.length ? <div className="rounded-3xl bg-white p-6">Получено заказов: {orders.length}</div> : <div className="rounded-3xl bg-white p-10 text-center"><div className="text-2xl font-bold">Заказов пока нет</div><p className="mt-2 text-black/50">После подключения Supabase новые заказы появятся здесь.</p></div>}</>}
+          {!loading && tab === "reviews" && <><h1 className="mb-6 font-integral text-3xl font-bold md:text-5xl">ОТЗЫВЫ</h1>{reviews.length ? <div className="space-y-3">{reviews.map((review)=><div key={review.id} className="rounded-3xl bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-4"><div><div className="font-bold">{review.author_name} · {review.rating}/5</div><p className="mt-2 text-black/65">{review.comment}</p></div><button onClick={()=>deleteReview(review)} className="shrink-0 rounded-full border border-red-500 px-4 py-2 text-sm font-semibold text-red-600">Удалить</button></div></div>)}</div> : <div className="rounded-3xl bg-white p-10 text-center text-black/50">Отзывов пока нет</div>}</>}
+
+          {!loading && tab === "orders" && <><h1 className="mb-6 font-integral text-3xl font-bold md:text-5xl">ЗАКАЗЫ</h1>{orders.length ? <div className="space-y-3">{orders.map((order)=><div key={order.id} className="rounded-3xl bg-white p-5 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div><div className="font-bold">Заказ #{order.id}</div><div className="text-sm text-black/50">{order.customer_email || "Без email"} · {order.created_at ? new Date(order.created_at).toLocaleString("ru-RU") : ""}</div></div><div className="text-right"><div className="text-xl font-bold">${Number(order.total || 0).toFixed(2)}</div><span className="rounded-full bg-[#d7ff5f] px-3 py-1 text-sm font-semibold">{order.status || "new"}</span></div></div></div>)}</div> : <div className="rounded-3xl bg-white p-10 text-center"><div className="text-2xl font-bold">Заказов пока нет</div><p className="mt-2 text-black/50">После бронирования новые заказы появятся здесь.</p></div>}</>}
         </section>
       </div>
     </main>

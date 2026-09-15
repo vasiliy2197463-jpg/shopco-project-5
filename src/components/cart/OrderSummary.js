@@ -4,7 +4,7 @@ import { IoPricetagOutline, IoArrowForward } from 'react-icons/io5';
 import Button from '@/components/common/Button';
 import { useCart } from '@/context/CartContext';
 
-export default function OrderSummary() {
+export default function OrderSummary({ onCheckout, booking = false }) {
   const { subtotal, discountAmount, deliveryFee, total, promoCode, setPromoCode, applyPromo, promoApplied, activePromo, discountRate } = useCart();
   const [promoError, setPromoError] = useState('');
 
@@ -78,8 +78,8 @@ export default function OrderSummary() {
         )}
       </div>
       
-      <Button variant="primary" className="w-full rounded-pill py-4 flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap">
-        Go to Checkout
+      <Button variant="primary" onClick={onCheckout} disabled={booking} className="w-full rounded-pill py-4 flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap disabled:opacity-50">
+        {booking ? 'Booking...' : 'Reserve Order'}
         <IoArrowForward size={18} />
       </Button>
     </div>

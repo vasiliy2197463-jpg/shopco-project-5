@@ -16,6 +16,7 @@ function ItemContent() {
   const { products, loading } = useCatalog();
   const product = products.find((item) => item.id === Number(searchParams.get("id")));
   const [selectedColor, setSelectedColor] = useState(null);
+  const [reviewSummary, setReviewSummary] = useState(null);
 
   useEffect(() => {
     setSelectedColor(product?.availableColors?.[0] || null);
@@ -26,11 +27,12 @@ function ItemContent() {
 
   const galleryImages = product.images?.length ? [selectedColor?.image || product.images[0], ...product.images.slice(1)] : [];
   const relatedProducts = products.filter((item) => item.id !== product.id).slice(0, 4);
+  const displayedProduct = reviewSummary ? { ...product, rating: reviewSummary.rating, reviewCount: reviewSummary.count } : product;
 
   return <main className="container-main py-6 md:py-10">
     <div className="mb-6 md:mb-8"><Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Shop", href: "/category/all" }, { label: product.category, href: `/category/${product.category}` }, { label: product.name }]} /></div>
-    <div className="mb-12 grid grid-cols-1 gap-8 md:mb-20 md:gap-12 lg:grid-cols-2"><ProductGallery images={galleryImages} /><ProductInfo product={product} selectedColor={selectedColor} onColorChange={setSelectedColor} /></div>
-    <div className="mb-16 md:mb-24"><ProductTabs product={product} reviews={reviews} /></div>
+    <div className="mb-12 grid grid-cols-1 gap-8 md:mb-20 md:gap-12 lg:grid-cols-2"><ProductGallery images={galleryImages} /><ProductInfo product={displayedProduct} selectedColor={selectedColor} onColorChange={setSelectedColor} /></div>
+    <div className="mb-16 md:mb-24"><ProductTabs product={product} reviews={reviews} onSummaryChange={setReviewSummary} /></div>
     {relatedProducts.length > 0 && <div><SectionHeading title="YOU MIGHT ALSO LIKE" center /><div className="mt-8 grid grid-cols-2 gap-4 md:mt-12 md:grid-cols-4 md:gap-6">{relatedProducts.map((item) => <ProductCard key={item.id} product={item} />)}</div></div>}
   </main>;
 }

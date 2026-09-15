@@ -17,6 +17,7 @@ const mergeProduct = (source, row) => ({
   rating: Number(row.rating ?? source.rating),
   stock: Number(row.stock ?? 0),
   active: row.active !== false,
+  archived: row.archived === true,
 });
 
 const databaseProduct = (row) => {
@@ -35,6 +36,7 @@ const databaseProduct = (row) => {
     reviewCount: 0,
     stock: Number(row.stock || 0),
     active: row.active !== false,
+    archived: row.archived === true,
     images: firstImage ? [firstImage] : [],
     availableColors: variants.length ? variants.map((variant) => ({ name: variant.color_name, hex: variant.color_hex || "#000000", image: variant.image_url })) : [{ name: "Default", hex: "#000000", image: firstImage }],
     availableSizes: [...new Set(variants.map((variant) => variant.size).filter(Boolean))].length ? [...new Set(variants.map((variant) => variant.size).filter(Boolean))] : ["One Size"],
@@ -54,13 +56,13 @@ export function CatalogProvider({ children }) {
 
     supabase
       .from("products")
-      .select("id,slug,name,description,category,dress_style,price,old_price,rating,stock,active,product_variants(color_name,color_hex,size,image_url,stock)")
+      .select("id,slug,name,description,category,dress_style,price,old_price,rating,stock,active,archived,product_variants(color_name,color_hex,size,image_url,stock)")
       .order("id")
       .then(({ data, error }) => {
         if (!error && data?.length) {
           const sources = new Map(sourceProducts.map((product) => [product.id, product]));
           setProducts(data
-            .filter((row) => row.active !== false)
+            .filter((row) => row.active !== false && row.archived !== true)
             .map((row) => sources.has(Number(row.id)) ? mergeProduct(sources.get(Number(row.id)), row) : databaseProduct(row)));
         }
         setLoading(false);

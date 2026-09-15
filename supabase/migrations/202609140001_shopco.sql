@@ -19,6 +19,7 @@ create table if not exists public.products (
   rating numeric(2,1) default 0,
   stock integer not null default 0 check (stock >= 0),
   active boolean not null default true,
+  archived boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -66,6 +67,18 @@ create table if not exists public.order_items (
   unit_price numeric(10,2) not null
 );
 
+create table if not exists public.product_reviews (
+  id uuid primary key default gen_random_uuid(),
+  product_id bigint not null references public.products(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  author_name text not null,
+  rating integer not null check (rating between 1 and 5),
+  comment text not null check (char_length(comment) between 2 and 2000),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(product_id, user_id)
+);
+
 insert into public.promo_codes (code, discount_percent)
 values ('SALE20', 20), ('SALE30', 30), ('SALE50', 50)
 on conflict (code) do update set discount_percent = excluded.discount_percent;
@@ -76,6 +89,7 @@ alter table public.product_variants enable row level security;
 alter table public.promo_codes enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
+alter table public.product_reviews enable row level security;
 
 create or replace function public.is_admin()
 returns boolean language sql stable security definer set search_path = public
@@ -97,6 +111,11 @@ create policy "customers create order items" on public.order_items for insert wi
   exists(select 1 from public.orders where orders.id = order_items.order_id and (orders.user_id = auth.uid() or orders.user_id is null))
 );
 create policy "admins manage order items" on public.order_items for all using (public.is_admin()) with check (public.is_admin());
+create policy "public reads reviews" on public.product_reviews for select using (true);
+create policy "users create own reviews" on public.product_reviews for insert to authenticated with check (user_id = auth.uid());
+create policy "users update own reviews" on public.product_reviews for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "users delete own reviews" on public.product_reviews for delete to authenticated using (user_id = auth.uid());
+create policy "admins manage reviews" on public.product_reviews for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public
