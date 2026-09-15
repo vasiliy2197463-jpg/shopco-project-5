@@ -53,6 +53,7 @@ export default function AdminPage() {
   const [orderFilter, setOrderFilter] = useState("active");
   const [orderReplies, setOrderReplies] = useState({});
   const [orderAllowReply, setOrderAllowReply] = useState({});
+  const [customerMessages, setCustomerMessages] = useState([]);
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
   const [showCreate, setShowCreate] = useState(false);
@@ -84,6 +85,7 @@ export default function AdminPage() {
         { data: dbOrders },
         { data: dbReviews },
         { data: dbQuestions },
+        { data: dbMessages },
       ] = await Promise.all([
         supabase
           .from("products")
@@ -103,6 +105,12 @@ export default function AdminPage() {
         supabase
           .from("product_questions")
           .select("*,products(name)")
+          .order("created_at", { ascending: false })
+          .limit(100),
+        supabase
+          .from("order_notifications")
+          .select("*")
+          .eq("sender", "customer")
           .order("created_at", { ascending: false })
           .limit(100),
       ]);
@@ -132,6 +140,7 @@ export default function AdminPage() {
       if (dbOrders) setOrders(dbOrders);
       if (dbReviews) setReviews(dbReviews);
       if (dbQuestions) setQuestions(dbQuestions);
+      if (dbMessages) setCustomerMessages(dbMessages);
       setLoading(false);
     };
     load();
@@ -140,16 +149,24 @@ export default function AdminPage() {
   useEffect(() => {
     if (!supabase || !isOwnerAdmin) return;
     const refreshOrders = async () => {
-      const { data } = await supabase
-        .from("orders")
-        .select("*,order_items(*)")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (data) setOrders(data);
+      const [{ data: orderData }, { data: messageData }] = await Promise.all([
+        supabase.from("orders").select("*,order_items(*)").order("created_at", { ascending: false }).limit(50),
+        supabase.from("order_notifications").select("*").eq("sender", "customer").order("created_at", { ascending: false }).limit(100),
+      ]);
+      if (orderData) setOrders(orderData);
+      if (messageData) setCustomerMessages(messageData);
     };
     const timer = setInterval(refreshOrders, 15000);
     return () => clearInterval(timer);
   }, [supabase, isOwnerAdmin]);
+
+  const openMessages = async () => {
+    setTab("messages");
+    const unreadIds = customerMessages.filter((item) => !item.is_read).map((item) => item.id);
+    if (!unreadIds.length || !supabase) return;
+    await supabase.from("order_notifications").update({ is_read: true }).in("id", unreadIds);
+    setCustomerMessages((current) => current.map((item) => ({ ...item, is_read: true })));
+  };
 
   const updateProduct = (id, field, value) => {
     setProducts((current) =>
@@ -326,6 +343,20 @@ export default function AdminPage() {
     setNotice("Отзыв удалён");
   };
 
+  const approveReview = async (review) => {
+    const { error } = await supabase
+      .from("product_reviews")
+      .update({ approved: true })
+      .eq("id", review.id);
+    if (error) return setNotice(`Ошибка: ${error.message}`);
+    setReviews((current) =>
+      current.map((item) =>
+        item.id === review.id ? { ...item, approved: true } : item,
+      ),
+    );
+    setNotice("Отзыв одобрен и опубликован");
+  };
+
   const replyToQuestion = async (item) => {
     const answer = questionReplies[item.id]?.trim();
     if (!answer) return;
@@ -479,7 +510,8 @@ export default function AdminPage() {
             ["products", "Товары"],
             ["trash", `Корзина (${trashedProducts.length})`],
             ["promos", "Промокоды"],
-            ["reviews", `Отзывы (${reviews.length})`],
+            ["reviews", `Отзывы (${reviews.filter((item) => !item.approved).length} на проверке)`],
+            ["messages", `Сообщения (${customerMessages.filter((item) => !item.is_read).length})`],
             [
               "questions",
               `Вопросы (${questions.filter((item) => !item.answer).length})`,
@@ -488,7 +520,7 @@ export default function AdminPage() {
           ].map(([id, label]) => (
             <button
               key={id}
-              onClick={() => setTab(id)}
+              onClick={() => id === "messages" ? openMessages() : setTab(id)}
               className={`w-full rounded-2xl px-4 py-3 text-left font-semibold ${tab === id ? "bg-white text-black" : "text-white/70 hover:bg-white/10"}`}
             >
               {label}
@@ -960,14 +992,15 @@ export default function AdminPage() {
                           <div className="font-bold">
                             {review.author_name} · {review.rating}/5
                           </div>
+                          <span className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-bold ${review.approved ? "bg-[#d7ff5f]" : "bg-amber-100 text-amber-800"}`}>
+                            {review.approved ? "Опубликован" : "На проверке"}
+                          </span>
                           <p className="mt-2 text-black/65">{review.comment}</p>
                         </div>
-                        <button
-                          onClick={() => deleteReview(review)}
-                          className="shrink-0 rounded-full border border-red-500 px-4 py-2 text-sm font-semibold text-red-600"
-                        >
-                          Удалить
-                        </button>
+                        <div className="flex shrink-0 flex-wrap gap-2">
+                          {!review.approved && <button onClick={() => approveReview(review)} className="rounded-full bg-[#d7ff5f] px-4 py-2 text-sm font-semibold">Одобрить</button>}
+                          <button onClick={() => deleteReview(review)} className="rounded-full border border-red-500 px-4 py-2 text-sm font-semibold text-red-600">Удалить</button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1048,6 +1081,20 @@ export default function AdminPage() {
                   Вопросов пока нет
                 </div>
               )}
+            </>
+          )}
+
+          {!loading && tab === "messages" && (
+            <>
+              <h1 className="mb-2 font-integral text-3xl font-bold md:text-5xl">СООБЩЕНИЯ</h1>
+              <p className="mb-6 text-black/50">Ответы покупателей по забронированным заказам.</p>
+              {customerMessages.length ? <div className="space-y-4">{customerMessages.map((message) => {
+                const order = orders.find((item) => item.id === message.order_id);
+                return <div key={message.id} className={`rounded-3xl bg-white p-5 shadow-sm ${!message.is_read ? "ring-2 ring-[#d7ff5f]" : ""}`}>
+                  <div className="flex flex-wrap items-center justify-between gap-3"><div><div className="font-bold">Покупатель · заказ #{message.order_id?.slice(0,8) || "—"}</div><div className="mt-1 text-sm text-black/45">{new Date(message.created_at).toLocaleString("ru-RU")}</div></div>{!message.is_read && <span className="rounded-full bg-[#d7ff5f] px-3 py-1 text-xs font-bold">Новое</span>}</div>
+                  <p className="mt-4 rounded-2xl bg-[#f2f2f2] p-4">{message.message}</p>
+                  {order ? <div className="mt-4 flex flex-col gap-2 sm:flex-row"><input value={orderReplies[order.id] || ""} onChange={(event)=>setOrderReplies((current)=>({...current,[order.id]:event.target.value}))} placeholder="Ответить покупателю…" className="min-w-0 flex-1 rounded-full bg-[#f2f2f2] px-5 py-3 outline-none"/><button onClick={()=>replyToOrder(order)} className="rounded-full bg-black px-6 py-3 font-semibold text-white">Отправить ответ</button><button onClick={()=>{setOrderFilter(["completed","cancelled"].includes(order.status)?order.status:"active");setTab("orders")}} className="rounded-full border border-black/15 px-5 py-3 font-semibold">Открыть заказ</button></div> : <p className="mt-3 text-sm text-black/45">Заказ был удалён.</p>}
+                </div>})}</div> : <div className="rounded-3xl bg-white p-10 text-center text-black/50">Сообщений от покупателей пока нет</div>}
             </>
           )}
 

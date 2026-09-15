@@ -74,6 +74,7 @@ create table if not exists public.product_reviews (
   author_name text not null,
   rating integer not null check (rating between 1 and 5),
   comment text not null check (char_length(comment) between 2 and 2000),
+  approved boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique(product_id, user_id)
@@ -131,7 +132,7 @@ create policy "customers create order items" on public.order_items for insert wi
   exists(select 1 from public.orders where orders.id = order_items.order_id and (orders.user_id = auth.uid() or orders.user_id is null))
 );
 create policy "admins manage order items" on public.order_items for all using (public.is_admin()) with check (public.is_admin());
-create policy "public reads reviews" on public.product_reviews for select using (true);
+create policy "public reads approved reviews" on public.product_reviews for select using (approved or user_id = auth.uid() or public.is_admin());
 create policy "users create own reviews" on public.product_reviews for insert to authenticated with check (user_id = auth.uid());
 create policy "users update own reviews" on public.product_reviews for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "users delete own reviews" on public.product_reviews for delete to authenticated using (user_id = auth.uid());
