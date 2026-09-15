@@ -1,16 +1,18 @@
-import './globals.css';
-import { CartProvider } from '@/context/CartContext';
-import StorefrontChrome from '@/components/layout/StorefrontChrome';
-import { LanguageProvider } from '@/context/LanguageContext';
-import SiteTranslator from '@/components/common/SiteTranslator';
-import { AuthProvider } from '@/context/AuthContext';
-import { CatalogProvider } from '@/context/CatalogContext';
+import "./globals.css";
+import { CartProvider } from "@/context/CartContext";
+import StorefrontChrome from "@/components/layout/StorefrontChrome";
+import { LanguageProvider } from "@/context/LanguageContext";
+import SiteTranslator from "@/components/common/SiteTranslator";
+import { AuthProvider } from "@/context/AuthContext";
+import { CatalogProvider } from "@/context/CatalogContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 
 export const metadata = {
-  title: 'SHOP.CO | Find Clothes That Matches Your Style',
-  description: 'Discover the latest fashion trends and high-quality clothing at SHOP.CO. Find clothes that match your style for every occasion.',
+  title: "SHOP.CO | Find Clothes That Matches Your Style",
+  description:
+    "Discover the latest fashion trends and high-quality clothing at SHOP.CO. Find clothes that match your style for every occasion.",
   icons: {
-    icon: '/favicon.svg',
+    icon: "/favicon.svg",
   },
 };
 
@@ -22,9 +24,11 @@ export default function RootLayout({ children }) {
           <SiteTranslator />
           <AuthProvider>
             <CatalogProvider>
-              <CartProvider>
-                <StorefrontChrome>{children}</StorefrontChrome>
-              </CartProvider>
+              <WishlistProvider>
+                <CartProvider>
+                  <StorefrontChrome>{children}</StorefrontChrome>
+                </CartProvider>
+              </WishlistProvider>
             </CatalogProvider>
           </AuthProvider>
         </LanguageProvider>

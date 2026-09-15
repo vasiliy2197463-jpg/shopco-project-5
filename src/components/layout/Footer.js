@@ -32,7 +32,7 @@ export default function Footer() {
           <div>
             <h3 className="uppercase tracking-widest font-medium text-base mb-6 text-black">Company</h3>
             <ul className="space-y-4 text-sm">
-              <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">About</Link></li>
+              <li><Link href="/info/about" className="text-gray-600 hover:text-black transition-colors">About</Link></li>
               <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">Features</Link></li>
               <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">Works</Link></li>
               <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">Career</Link></li>
@@ -43,10 +43,10 @@ export default function Footer() {
           <div>
             <h3 className="uppercase tracking-widest font-medium text-base mb-6 text-black">Help</h3>
             <ul className="space-y-4 text-sm">
-              <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">Customer Support</Link></li>
-              <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">Delivery Details</Link></li>
-              <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">Terms & Conditions</Link></li>
-              <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/info/support" className="text-gray-600 hover:text-black transition-colors">Customer Support</Link></li>
+              <li><Link href="/info/delivery" className="text-gray-600 hover:text-black transition-colors">Delivery Details</Link></li>
+              <li><Link href="/info/terms" className="text-gray-600 hover:text-black transition-colors">Terms & Conditions</Link></li>
+              <li><Link href="/info/privacy" className="text-gray-600 hover:text-black transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
 
@@ -55,9 +55,9 @@ export default function Footer() {
             <h3 className="uppercase tracking-widest font-medium text-base mb-6 text-black">FAQ</h3>
             <ul className="space-y-4 text-sm">
               <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">Account</Link></li>
-              <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">Manage Deliveries</Link></li>
-              <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">Orders</Link></li>
-              <li><Link href="/category/casual" className="text-gray-600 hover:text-black transition-colors">Payments</Link></li>
+              <li><Link href="/info/delivery" className="text-gray-600 hover:text-black transition-colors">Manage Deliveries</Link></li>
+              <li><Link href="/account" className="text-gray-600 hover:text-black transition-colors">Orders</Link></li>
+              <li><Link href="/info/payments" className="text-gray-600 hover:text-black transition-colors">Payments</Link></li>
             </ul>
           </div>
 

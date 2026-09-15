@@ -13,6 +13,7 @@ import {
   IoClose,
   IoChevronDown,
   IoNotificationsOutline,
+  IoHeartOutline,
 } from "react-icons/io5";
 import { assetPath } from "@/components/common/BaseImage";
 import { useLanguage } from "@/context/LanguageContext";
@@ -384,6 +385,14 @@ export default function Navbar() {
           >
             <IoSearchOutline size={24} className="md:w-7 md:h-7" />
           </button>
+
+          <Link
+            href="/wishlist"
+            className="relative inline-flex h-10 w-10 items-center justify-center text-black hover:text-gray-600 transition-colors"
+            aria-label={language === "ru" ? "Избранное" : "Wishlist"}
+          >
+            <IoHeartOutline size={24} className="md:h-7 md:w-7" />
+          </Link>
 
           <Link
             href="/cart"

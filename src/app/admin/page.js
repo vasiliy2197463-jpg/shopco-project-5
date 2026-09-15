@@ -1128,6 +1128,7 @@ export default function AdminPage() {
                                 )
                               : ""}
                           </div>
+                          {(order.customer_name || order.shipping_address) && <div className="mt-3 rounded-2xl bg-[#f2f2f2] p-3 text-sm"><b>{order.customer_name || "Покупатель"}</b>{order.customer_phone && <> · {order.customer_phone}</>}<br/>{[order.city, order.shipping_address, order.postal_code].filter(Boolean).join(", ")}<br/><span className="text-black/50">{order.delivery_method || "courier"} · {order.payment_method || "reservation"} · {order.payment_status || "not_required"}</span>{order.customer_notes && <><br/>Комментарий: {order.customer_notes}</>}</div>}
                         </div>
                         <div className="text-right">
                           <div className="text-xl font-bold">

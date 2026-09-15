@@ -53,6 +53,15 @@ create table if not exists public.orders (
   delivery_fee numeric(10,2) not null default 0,
   total numeric(10,2) not null,
   customer_email text,
+  customer_name text,
+  customer_phone text,
+  city text,
+  shipping_address text,
+  postal_code text,
+  delivery_method text not null default 'courier',
+  payment_method text not null default 'reservation',
+  payment_status text not null default 'not_required',
+  customer_notes text,
   created_at timestamptz not null default now()
 );
 
