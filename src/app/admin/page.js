@@ -50,6 +50,7 @@ export default function AdminPage() {
   const [reviews, setReviews] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [subscribers, setSubscribers] = useState([]);
+  const [subscriberQuery, setSubscriberQuery] = useState("");
   const [questionReplies, setQuestionReplies] = useState({});
   const [orderFilter, setOrderFilter] = useState("new");
   const [orderReplies, setOrderReplies] = useState({});
@@ -181,6 +182,32 @@ export default function AdminPage() {
         item.id === id ? { ...item, [field]: value } : item,
       ),
     );
+  };
+
+  const toggleSubscriber = async (subscriber) => {
+    if (!supabase) return;
+    const nextActive = subscriber.active === false;
+    const { error } = await supabase
+      .from("newsletter_subscribers")
+      .update({ active: nextActive })
+      .eq("id", subscriber.id);
+    if (error) {
+      setNotice(`Ошибка: ${error.message}`);
+      return;
+    }
+    setSubscribers((current) => current.map((item) => item.id === subscriber.id ? { ...item, active: nextActive } : item));
+    setNotice(nextActive ? "Подписка восстановлена." : "Подписка отключена.");
+  };
+
+  const exportSubscribers = () => {
+    const rows = [["email", "language", "active", "created_at"], ...subscribers.map((item) => [item.email, item.language || "en", item.active !== false ? "yes" : "no", item.created_at])];
+    const csv = rows.map((row) => row.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `shopco-subscribers-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const saveProducts = async () => {
@@ -920,24 +947,22 @@ export default function AdminPage() {
 
           {!loading && tab === "subscribers" && (
             <>
-              <div className="mb-6">
-                <h1 className="font-integral text-3xl font-bold md:text-5xl">
-                  ПОДПИСЧИКИ
-                </h1>
-                <p className="mt-2 text-black/50">
-                  Пользователи, которые подписались на новости и специальные предложения.
-                </p>
+              <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+                <div><h1 className="font-integral text-3xl font-bold md:text-5xl">ПОДПИСЧИКИ</h1><p className="mt-2 text-black/50">Пользователи, которые подписались на новости и специальные предложения.</p></div>
+                <button onClick={exportSubscribers} disabled={!subscribers.length} className="rounded-full bg-black px-6 py-3 font-semibold text-white disabled:opacity-40">Скачать CSV</button>
               </div>
+              <input value={subscriberQuery} onChange={(event)=>setSubscriberQuery(event.target.value)} placeholder="Найти email…" className="mb-4 w-full rounded-full bg-white px-5 py-3 outline-none ring-1 ring-black/5 focus:ring-2 focus:ring-black" />
               {subscribers.length ? (
                 <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-                  <div className="hidden grid-cols-[1fr_120px_180px] gap-4 border-b border-black/10 bg-black px-6 py-4 text-sm font-bold text-white sm:grid">
-                    <span>Email</span><span>Язык</span><span>Дата подписки</span>
+                  <div className="hidden grid-cols-[1fr_90px_160px_140px] gap-4 border-b border-black/10 bg-black px-6 py-4 text-sm font-bold text-white sm:grid">
+                    <span>Email</span><span>Язык</span><span>Дата</span><span>Статус</span>
                   </div>
-                  {subscribers.map((subscriber) => (
-                    <div key={subscriber.id} className="grid gap-2 border-b border-black/5 px-5 py-4 last:border-0 sm:grid-cols-[1fr_120px_180px] sm:items-center sm:gap-4 sm:px-6">
+                  {subscribers.filter((item)=>item.email.toLowerCase().includes(subscriberQuery.trim().toLowerCase())).map((subscriber) => (
+                    <div key={subscriber.id} className={`grid gap-2 border-b border-black/5 px-5 py-4 last:border-0 sm:grid-cols-[1fr_90px_160px_140px] sm:items-center sm:gap-4 sm:px-6 ${subscriber.active === false ? "bg-black/[0.03] opacity-60" : ""}`}>
                       <a href={`mailto:${subscriber.email}`} className="min-w-0 break-all font-semibold hover:underline">{subscriber.email}</a>
                       <span className="w-fit rounded-full bg-[#f2f2f2] px-3 py-1 text-sm font-bold uppercase">{subscriber.language || "en"}</span>
                       <span className="text-sm text-black/50">{new Date(subscriber.created_at).toLocaleString("ru-RU")}</span>
+                      <button onClick={()=>toggleSubscriber(subscriber)} className={`w-fit rounded-full px-4 py-2 text-xs font-bold ${subscriber.active === false ? "bg-black text-white" : "bg-[#d7ff5f]"}`}>{subscriber.active === false ? "Включить" : "Активна"}</button>
                     </div>
                   ))}
                 </div>

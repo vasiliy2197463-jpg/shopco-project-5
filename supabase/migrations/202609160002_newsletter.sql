@@ -19,3 +19,10 @@ on public.newsletter_subscribers
 for select
 to authenticated
 using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'vasiliy2197463@gmail.com');
+
+create policy "Owner can update subscribers"
+on public.newsletter_subscribers
+for update
+to authenticated
+using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'vasiliy2197463@gmail.com')
+with check (lower(coalesce(auth.jwt() ->> 'email', '')) = 'vasiliy2197463@gmail.com');

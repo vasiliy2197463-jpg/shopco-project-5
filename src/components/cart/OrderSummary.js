@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { IoPricetagOutline, IoArrowForward } from 'react-icons/io5';
 import Button from '@/components/common/Button';
 import { useCart } from '@/context/CartContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function OrderSummary({ onCheckout, booking = false }) {
   const { subtotal, discountAmount, deliveryFee, total, promoCode, setPromoCode, applyPromo, promoApplied, activePromo, discountRate } = useCart();
+  const { language } = useLanguage();
   const [promoError, setPromoError] = useState('');
 
   const handleApplyPromo = () => {
@@ -13,7 +15,7 @@ export default function OrderSummary({ onCheckout, booking = false }) {
     if (!promoCode) return;
     const success = applyPromo(promoCode);
     if (!success) {
-      setPromoError("Invalid code. Try SALE20, SALE30 or SALE50.");
+      setPromoError(language === 'ru' ? 'Ошибка: такого промокода не существует.' : 'Error: this promo code does not exist.');
     }
   };
 
