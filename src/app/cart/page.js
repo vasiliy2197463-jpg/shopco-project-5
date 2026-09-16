@@ -5,6 +5,7 @@ import CartItem from "@/components/cart/CartItem";
 import OrderSummary from "@/components/cart/OrderSummary";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useCatalog } from "@/context/CatalogContext";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -13,6 +14,7 @@ export default function CartPage() {
   const { items, clearCart, subtotal, discountAmount, deliveryFee, total } =
     useCart();
   const { user } = useAuth();
+  const { loading: catalogLoading } = useCatalog();
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [booking, setBooking] = useState(false);
   const [bookingNotice, setBookingNotice] = useState("");
@@ -32,12 +34,37 @@ export default function CartPage() {
       return;
     }
     if (!supabase || !items.length) return;
+    if (catalogLoading) {
+      setBookingNotice("Проверяем наличие товаров. Попробуйте ещё раз через несколько секунд.");
+      return;
+    }
     if (!checkout.fullName.trim() || !checkout.phone.trim() || !checkout.city.trim() || !checkout.address.trim()) {
       setBookingNotice("Заполните имя, телефон, город и адрес доставки.");
       return;
     }
     setBooking(true);
     setBookingNotice("");
+    const { data: liveProducts, error: catalogError } = await supabase
+      .from("products")
+      .select("id,name,stock,active,archived");
+    if (catalogError) {
+      setBookingNotice("Не удалось проверить наличие товаров. Заказ не создан — попробуйте ещё раз.");
+      setBooking(false);
+      return;
+    }
+    const unavailableItems = items.filter((item) => {
+      const product = liveProducts.find((candidate) => candidate.name.toLowerCase() === String(item.name || "").toLowerCase())
+        || liveProducts.find((candidate) => String(candidate.id) === String(item.id));
+      return !product
+        || product.active === false
+        || product.archived === true
+        || Number(product.stock || 0) < Number(item.quantity || 1);
+    });
+    if (unavailableItems.length) {
+      setBookingNotice("Один или несколько товаров уже удалены, скрыты или закончились. Корзина обновлена — проверьте её перед бронированием.");
+      setBooking(false);
+      return;
+    }
     const { data: order, error } = await supabase
       .from("orders")
       .insert({
@@ -97,6 +124,7 @@ export default function CartPage() {
     { label: "Home", href: "/" },
     { label: "Cart", href: "/cart" },
   ];
+  const bookingIsError = /(не удалось|заполните|войдите|недоступ|удалены|законч|ошибка|проверяем)/i.test(bookingNotice);
 
   return (
     <main className="container-main py-6">
@@ -109,7 +137,7 @@ export default function CartPage() {
       </h1>
 
       {bookingNotice && (
-        <div className="mb-5 rounded-[20px] bg-[#d7ff5f] px-5 py-4 font-medium">
+        <div className={`mb-5 rounded-[20px] px-5 py-4 font-medium ${bookingIsError ? "bg-red-100 text-red-800" : "bg-[#d7ff5f]"}`}>
           {bookingNotice}{" "}
           {!user && (
             <Link href="/signup" className="ml-2 underline">

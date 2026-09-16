@@ -6,7 +6,7 @@ import { useCatalog } from "@/context/CatalogContext";
 const CartContext = createContext(undefined);
 
 export function CartProvider({ children }) {
-  const { products } = useCatalog();
+  const { products, loading: catalogLoading } = useCatalog();
   const [items, setItems] = useState([]);
   const [promoCode, setPromoCode] = useState("");
   const [activePromo, setActivePromo] = useState(null);
@@ -38,18 +38,18 @@ export function CartProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!products?.length) return;
+    if (catalogLoading) return;
     setItems((current) => current.map((item) => {
       const product = products.find((candidate) => candidate.name.toLowerCase() === String(item.name || "").toLowerCase()) || products.find((candidate) => String(candidate.id) === String(item.id));
-      if (!product) return item;
+      if (!product || product.active === false || product.archived === true || Number(product.stock || 0) <= 0) return null;
       const savedColor = String(item.color || "").toLowerCase();
       const color = product.availableColors?.find((candidate) => {
         const candidateColor = candidate.name.toLowerCase();
         return candidateColor === savedColor || savedColor.startsWith(candidateColor) || candidateColor.startsWith(savedColor);
       });
-      return { ...item, image: color?.image || product.images?.[0] || item.image };
-    }));
-  }, [products]);
+      return { ...item, image: color?.image || product.images?.[0] || item.image, stock: Number(product.stock || 0), quantity: Math.min(Number(item.quantity || 1), Number(product.stock || 0)) };
+    }).filter(Boolean));
+  }, [products, catalogLoading]);
 
   // Sync cart to localStorage when items change
   useEffect(() => {
