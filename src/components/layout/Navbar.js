@@ -408,7 +408,7 @@ export default function Navbar() {
           </Link>
 
           {user && (
-            <div className="relative flex h-10 w-10 items-center justify-center">
+            <div className="relative hidden h-10 w-10 items-center justify-center lg:flex">
               <button
                 onClick={openNotifications}
                 className="relative inline-flex h-10 w-10 items-center justify-center text-black hover:text-gray-600"
@@ -573,6 +573,23 @@ export default function Navbar() {
           </button>
         </div>
         <div className="p-4 flex flex-col space-y-6 font-satoshi text-lg mt-4">
+          <Link
+            href="/"
+            className="font-medium hover:text-gray-600 transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            {language === "ru" ? "Главная" : "Home"}
+          </Link>
+          {user && (
+            <Link
+              href="/account"
+              className="flex items-center justify-between font-medium hover:text-gray-600 transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <span>{language === "ru" ? "Уведомления" : "Notifications"}</span>
+              {unreadCount > 0 && <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#FF3333] px-1.5 text-xs font-bold text-white">{unreadCount}</span>}
+            </Link>
+          )}
           <Link
             href="/category/casual"
             className="font-medium hover:text-gray-600 transition-colors"
