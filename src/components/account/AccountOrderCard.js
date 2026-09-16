@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { useCatalog } from "@/context/CatalogContext";
 
 const labels = {
   ru: { new: "Забронирован", processing: "Принят в работу", completed: "Завершён", cancelled: "Отменён" },
@@ -10,9 +11,15 @@ const labels = {
 
 export default function AccountOrderCard({ order, language }) {
   const { addToCart } = useCart();
+  const { products } = useCatalog();
   const [notice, setNotice] = useState("");
   const repeatOrder = () => {
-    order.order_items?.forEach((item) => addToCart({ id: item.product_id, name: item.product_name, price: Number(item.unit_price), color: item.color, size: item.size, quantity: Number(item.quantity), image: "/images/products/product-1.png" }));
+    order.order_items?.forEach((item) => {
+      const product = products.find((candidate) => String(candidate.id) === String(item.product_id)) || products.find((candidate) => candidate.name.toLowerCase() === String(item.product_name || "").toLowerCase());
+      const colorName = String(item.color || "").toLowerCase();
+      const variant = product?.availableColors?.find((candidate) => candidate.name.toLowerCase() === colorName || colorName.startsWith(candidate.name.toLowerCase()) || candidate.name.toLowerCase().startsWith(colorName));
+      addToCart({ id: item.product_id, name: item.product_name, price: Number(item.unit_price), color: item.color, size: item.size, quantity: Number(item.quantity), image: variant?.image || product?.images?.[0] });
+    });
     setNotice(language === "ru" ? "Товары добавлены в корзину." : "Items added to cart.");
   };
   const printReceipt = () => window.print();

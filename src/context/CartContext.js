@@ -1,11 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, useState, useMemo, useEffect } from "react";
-import { products } from "@/data/products";
+import { useCatalog } from "@/context/CatalogContext";
 
 const CartContext = createContext(undefined);
 
 export function CartProvider({ children }) {
+  const { products } = useCatalog();
   const [items, setItems] = useState([]);
   const [promoCode, setPromoCode] = useState("");
   const [activePromo, setActivePromo] = useState(null);
@@ -35,6 +36,20 @@ export function CartProvider({ children }) {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (!products?.length) return;
+    setItems((current) => current.map((item) => {
+      const product = products.find((candidate) => String(candidate.id) === String(item.id)) || products.find((candidate) => candidate.name.toLowerCase() === String(item.name || "").toLowerCase());
+      if (!product) return item;
+      const savedColor = String(item.color || "").toLowerCase();
+      const color = product.availableColors?.find((candidate) => {
+        const candidateColor = candidate.name.toLowerCase();
+        return candidateColor === savedColor || savedColor.startsWith(candidateColor) || candidateColor.startsWith(savedColor);
+      });
+      return { ...item, image: color?.image || product.images?.[0] || item.image };
+    }));
+  }, [products]);
 
   // Sync cart to localStorage when items change
   useEffect(() => {
