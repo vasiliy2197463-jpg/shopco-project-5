@@ -15,9 +15,14 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
-    supabase.auth.getUser().then(({ data }) => { setUser(data.user || null); setLoading(false); });
+    let active = true;
+    const timeout = setTimeout(() => { if (active) setLoading(false); }, 8000);
+    supabase.auth.getUser()
+      .then(({ data }) => { if (active) setUser(data.user || null); })
+      .catch(() => { if (active) setUser(null); })
+      .finally(() => { if (active) setLoading(false); });
     const { data } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user || null));
-    return () => data.subscription.unsubscribe();
+    return () => { active = false; clearTimeout(timeout); data.subscription.unsubscribe(); };
   }, [supabase]);
 
   useEffect(() => {
@@ -38,9 +43,12 @@ export function AuthProvider({ children }) {
         if (!active) return;
         setProfile(data || null);
         setProfileLoading(false);
-      });
+      })
+      .catch(() => { if (active) setProfileLoading(false); });
 
-    return () => { active = false; };
+    const timeout = setTimeout(() => { if (active) setProfileLoading(false); }, 8000);
+
+    return () => { active = false; clearTimeout(timeout); };
   }, [supabase, user]);
 
   const signUp = (email, password, fullName) => supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
