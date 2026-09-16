@@ -6,19 +6,29 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const CatalogContext = createContext({ products: sourceProducts, loading: false });
 
-const mergeProduct = (source, row) => ({
-  ...source,
-  name: row.name || source.name,
-  description: row.description ?? source.description,
-  category: row.category || source.category,
-  dressStyle: row.dress_style || source.dressStyle,
-  price: Number(row.price ?? source.price),
-  originalPrice: row.old_price == null ? source.originalPrice : Number(row.old_price),
-  rating: Number(row.rating ?? source.rating),
-  stock: Number(row.stock ?? 0),
-  active: row.active !== false,
-  archived: row.archived === true,
-});
+const mergeProduct = (source, row) => {
+  const variants = row.product_variants || [];
+  const variantColors = variants.filter((variant) => variant.image_url).map((variant) => ({ name: variant.color_name, hex: variant.color_hex || "#000000", image: variant.image_url }));
+  const uniqueColors = [...new Map(variantColors.map((color) => [color.name.toLowerCase(), color])).values()];
+  const variantSizes = [...new Set(variants.map((variant) => variant.size).filter(Boolean))];
+  const firstImage = uniqueColors[0]?.image;
+  return {
+    ...source,
+    name: row.name || source.name,
+    description: row.description ?? source.description,
+    category: row.category || source.category,
+    dressStyle: row.dress_style || source.dressStyle,
+    price: Number(row.price ?? source.price),
+    originalPrice: row.old_price == null ? source.originalPrice : Number(row.old_price),
+    rating: Number(row.rating ?? source.rating),
+    stock: Number(row.stock ?? 0),
+    active: row.active !== false,
+    archived: row.archived === true,
+    images: firstImage ? [firstImage, ...(source.images || []).filter((image) => image !== firstImage)] : source.images,
+    availableColors: uniqueColors.length ? uniqueColors : source.availableColors,
+    availableSizes: variantSizes.length ? variantSizes : source.availableSizes,
+  };
+};
 
 const databaseProduct = (row) => {
   const variants = row.product_variants || [];
