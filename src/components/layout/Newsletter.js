@@ -38,7 +38,7 @@ export default function Newsletter() {
     <div className="relative z-10 mt-[30px] mb-[10px] w-full px-4 md:px-6">
       <div className="max-w-[1240px] mx-auto bg-black rounded-[20px] px-6 py-8 md:px-16 md:py-9 flex flex-col md:flex-row md:items-center md:justify-between gap-8 shadow-lg">
         <h2 className="font-integral text-[24px] sm:text-[32px] md:text-[40px] font-bold text-white leading-tight md:max-w-[550px]">
-          STAY UPTO DATE ABOUT OUR LATEST OFFERS
+          {language === 'ru' ? 'БУДЬТЕ В КУРСЕ НАШИХ ЛУЧШИХ ПРЕДЛОЖЕНИЙ' : 'STAY UPTO DATE ABOUT OUR LATEST OFFERS'}
         </h2>
         
         <form onSubmit={handleSubscribe} className="flex flex-col space-y-3 w-full md:max-w-[350px]">
@@ -50,7 +50,7 @@ export default function Newsletter() {
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email address"
+              placeholder={language === 'ru' ? 'Введите электронную почту' : 'Enter your email address'}
               className="w-full bg-white rounded-full py-3 pl-12 pr-4 text-sm font-satoshi focus:outline-none text-black"
               required
             />
@@ -60,7 +60,7 @@ export default function Newsletter() {
             disabled={submitting}
             className="w-full bg-white text-black font-satoshi font-medium rounded-full py-3 hover:bg-gray-100 transition-colors disabled:cursor-wait disabled:opacity-60"
           >
-            {submitting ? (language === 'ru' ? 'Подписываем…' : 'Subscribing…') : 'Subscribe to Newsletter'}
+            {submitting ? (language === 'ru' ? 'Подписываем…' : 'Subscribing…') : (language === 'ru' ? 'Подписаться на новости' : 'Subscribe to Newsletter')}
           </button>
           {status && <p className="rounded-xl bg-white/10 px-4 py-2 text-sm text-white" role="status">{status}</p>}
         </form>

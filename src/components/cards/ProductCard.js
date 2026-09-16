@@ -9,11 +9,13 @@ import { useWishlist } from "@/context/WishlistContext";
 import RatingStars from "@/components/common/RatingStars";
 import Price from "@/components/common/Price";
 import { useCompare } from "@/context/CompareContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function ProductCard({ product, priority = false }) {
   const { items, addToCart, increaseQuantity, decreaseQuantity } = useCart();
   const { toggleWishlist, isFavorite } = useWishlist();
   const { toggleCompare, isCompared } = useCompare();
+  const { language } = useLanguage();
   const [added, setAdded] = useState(false);
   const defaultSize = product.availableSizes?.[0] || "Medium";
   const [selectedColor, setSelectedColor] = useState(
@@ -131,7 +133,7 @@ export default function ProductCard({ product, priority = false }) {
           />
         ))}
       </div>
-      <button onClick={() => toggleCompare(product)} className={`mt-3 flex items-center gap-2 text-xs font-semibold ${isCompared(product.id) ? "text-green-700" : "text-black/55"}`}><IoGitCompareOutline size={17} />{isCompared(product.id) ? "Added to compare" : "Compare"}</button>
+      <button onClick={() => toggleCompare(product)} className={`mt-3 flex items-center gap-2 text-xs font-semibold ${isCompared(product.id) ? "text-green-700" : "text-black/55"}`}><IoGitCompareOutline size={17} />{isCompared(product.id) ? (language === "ru" ? "Добавлено к сравнению" : "Added to compare") : (language === "ru" ? "Сравнить" : "Compare")}</button>
     </article>
   );
 }

@@ -1,11 +1,13 @@
 'use client';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function SizeSelector({ sizes = [], selectedSize, onSizeChange }) {
+  const { language } = useLanguage();
   if (!sizes || !sizes.length) return null;
 
   return (
     <div>
-      <span className="block text-gray-600 mb-3 text-sm md:text-base font-normal normal-case">Choose Size</span>
+      <span className="block text-gray-600 mb-3 text-sm md:text-base font-normal normal-case">{language === 'ru' ? 'Выберите размер' : 'Choose Size'}</span>
       <div className="flex gap-3 flex-wrap">
         {sizes.map((size, idx) => {
           const isSelected = selectedSize === size;

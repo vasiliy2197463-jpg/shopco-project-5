@@ -1,12 +1,14 @@
 'use client';
 import { IoCheckmark } from 'react-icons/io5';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function ColorPicker({ colors = [], selectedColor, onColorChange }) {
+  const { language } = useLanguage();
   if (!colors || !colors.length) return null;
 
   return (
     <div>
-      <span className="block text-gray-600 mb-3 text-sm md:text-base font-normal normal-case">Select Colors</span>
+      <span className="block text-gray-600 mb-3 text-sm md:text-base font-normal normal-case">{language === 'ru' ? 'Выберите цвет' : 'Select Colors'}</span>
       <div className="flex gap-3">
         {colors.map((color, idx) => {
           const isSelected = selectedColor?.name === color.name;

@@ -9,6 +9,7 @@ import QuantitySelector from "./QuantitySelector";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { IoHeart, IoHeartOutline } from "react-icons/io5";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function ProductInfo({
   product,
@@ -17,6 +18,8 @@ export default function ProductInfo({
 }) {
   const { addToCart } = useCart();
   const { toggleWishlist, isFavorite } = useWishlist();
+  const { language } = useLanguage();
+  const ru = language === "ru";
 
   // Default values
   const defaultColors = product?.availableColors || [
@@ -92,7 +95,7 @@ export default function ProductInfo({
           "This graphic t-shirt which is perfect for any occasion. Crafted from a soft and breathable fabric, it offers superior comfort and style."}
       </p>
       <div className={`w-fit rounded-full px-4 py-2 text-sm font-semibold ${Number(product.stock) === 0 ? "bg-red-100 text-red-700" : Number(product.stock) <= 5 ? "bg-amber-100 text-amber-800" : "bg-green-100 text-green-800"}`}>
-        {Number(product.stock) === 0 ? "Out of stock" : Number(product.stock) <= 5 ? `Only ${product.stock} left` : "In stock"}
+        {Number(product.stock) === 0 ? (ru ? "Нет в наличии" : "Out of stock") : Number(product.stock) <= 5 ? (ru ? `Осталось: ${product.stock}` : `Only ${product.stock} left`) : (ru ? "В наличии" : "In stock")}
       </div>
 
       <hr className="border-border" />
@@ -112,7 +115,7 @@ export default function ProductInfo({
         selectedSize={selectedSize}
         onSizeChange={setSelectedSize}
       />
-      <button onClick={() => setSizeGuideOpen(true)} className="w-fit text-sm font-semibold underline">Size guide</button>
+      <button onClick={() => setSizeGuideOpen(true)} className="w-fit text-sm font-semibold underline">{ru ? "Таблица размеров" : "Size guide"}</button>
 
       <hr className="border-border" />
 
@@ -128,7 +131,7 @@ export default function ProductInfo({
           disabled={Number(product.stock) === 0}
           className={`flex-1 py-4 text-sm sm:text-base whitespace-nowrap transition-colors duration-300 ${added ? "bg-green-verified text-white hover:bg-green-700" : ""}`}
         >
-          {Number(product.stock) === 0 ? "Out of stock" : added ? "Added to Cart! ✓" : "Add to Cart"}
+          {Number(product.stock) === 0 ? (ru ? "Нет в наличии" : "Out of stock") : added ? (ru ? "Добавлено в корзину! ✓" : "Added to Cart! ✓") : (ru ? "Добавить в корзину" : "Add to Cart")}
         </Button>
       </div>
       {sizeGuideOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 p-4" onClick={()=>setSizeGuideOpen(false)}><div className="w-full max-w-xl rounded-[28px] bg-white p-6 md:p-8" onClick={(event)=>event.stopPropagation()}><div className="flex items-center justify-between"><h2 className="font-integral text-2xl font-bold">SIZE GUIDE</h2><button onClick={()=>setSizeGuideOpen(false)} className="text-3xl">×</button></div><p className="mt-2 text-sm text-black/55">Measure around your chest and waist without pulling the tape tight.</p><div className="mt-5 overflow-x-auto"><table className="w-full text-left"><thead><tr className="border-b border-black/15"><th className="py-3">Size</th><th>Chest</th><th>Waist</th></tr></thead><tbody>{[["XS","82–87 cm","66–71 cm"],["S","88–93 cm","72–77 cm"],["M","94–101 cm","78–85 cm"],["L","102–109 cm","86–93 cm"],["XL","110–117 cm","94–101 cm"],["XXL","118–125 cm","102–109 cm"]].map((row)=><tr key={row[0]} className="border-b border-black/10">{row.map((cell)=><td key={cell} className="py-3">{cell}</td>)}</tr>)}</tbody></table></div></div></div>}

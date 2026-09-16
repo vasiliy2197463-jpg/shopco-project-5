@@ -3,9 +3,12 @@
 import Image from '@/components/common/BaseImage';
 import { IoTrashOutline } from 'react-icons/io5';
 import { useCart } from '@/context/CartContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function CartItem({ item }) {
   const { increaseQuantity, decreaseQuantity, removeFromCart } = useCart();
+  const { language } = useLanguage();
+  const ru = language === 'ru';
 
   return (
     <div className="flex flex-row gap-4 py-5 border-b border-border last:border-b-0 last:pb-0 first:pt-0">
@@ -31,15 +34,15 @@ export default function CartItem({ item }) {
             </button>
           </div>
           {item.size && (
-            <p className="text-sm text-gray-600">Size: <span className="text-primary">{item.size}</span></p>
+            <p className="text-sm text-gray-600">{ru ? 'Размер' : 'Size'}: <span className="text-primary">{item.size}</span></p>
           )}
           {item.color && (
-            <p className="text-sm text-gray-600 mt-1">Color: <span className="text-primary">{item.color}</span></p>
+            <p className="text-sm text-gray-600 mt-1">{ru ? 'Цвет' : 'Color'}: <span className="text-primary">{item.color}</span></p>
           )}
         </div>
         
         <div className="flex justify-between items-center mt-2">
-          <p className="font-bold text-xl md:text-2xl text-primary">${item.price}</p>
+          <p className="font-bold text-xl md:text-2xl text-primary">{ru ? `${Number(item.price).toLocaleString('ru-RU')} $` : `$${Number(item.price).toLocaleString('en-US')}`}</p>
           <div className="bg-gray-bg rounded-pill flex items-center">
             <button
               onClick={() => decreaseQuantity(item.id, item.size, item.color)}
