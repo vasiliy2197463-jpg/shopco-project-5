@@ -50,7 +50,7 @@ export default function AdminPage() {
   const [reviews, setReviews] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [questionReplies, setQuestionReplies] = useState({});
-  const [orderFilter, setOrderFilter] = useState("active");
+  const [orderFilter, setOrderFilter] = useState("new");
   const [orderReplies, setOrderReplies] = useState({});
   const [orderAllowReply, setOrderAllowReply] = useState({});
   const [customerMessages, setCustomerMessages] = useState([]);
@@ -464,8 +464,8 @@ export default function AdminPage() {
     (order) => order.status === "new" || order.status === "pending",
   ).length;
   const filteredOrders = orders.filter((order) =>
-    orderFilter === "active"
-      ? !["completed", "cancelled"].includes(order.status)
+    orderFilter === "new"
+      ? ["new", "pending"].includes(order.status)
       : order.status === orderFilter,
   );
 
@@ -540,7 +540,7 @@ export default function AdminPage() {
 
         <section className="min-w-0">
           {notice && (
-            <div className="mb-5 rounded-2xl bg-[#d7ff5f] px-5 py-3 font-medium">
+            <div className={`mb-5 rounded-2xl px-5 py-3 font-medium ${/(ошибка|заполните|не удалось|недоступ|обязательн)/i.test(notice) ? "bg-red-100 text-red-800 ring-1 ring-red-300" : "bg-[#d7ff5f] text-black"}`}>
               {notice}
             </div>
           )}
@@ -1100,7 +1100,7 @@ export default function AdminPage() {
                 return <div key={message.id} className={`rounded-3xl bg-white p-5 shadow-sm ${!message.is_read ? "ring-2 ring-[#d7ff5f]" : ""}`}>
                   <div className="flex flex-wrap items-center justify-between gap-3"><div><div className="font-bold">Покупатель · заказ #{message.order_id?.slice(0,8) || "—"}</div><div className="mt-1 text-sm text-black/45">{new Date(message.created_at).toLocaleString("ru-RU")}</div></div>{!message.is_read && <span className="rounded-full bg-[#d7ff5f] px-3 py-1 text-xs font-bold">Новое</span>}</div>
                   <p className="mt-4 rounded-2xl bg-[#f2f2f2] p-4">{message.message}</p>
-                  {order ? <div className="mt-4 flex flex-col gap-2 sm:flex-row"><input value={orderReplies[order.id] || ""} onChange={(event)=>setOrderReplies((current)=>({...current,[order.id]:event.target.value}))} placeholder="Ответить покупателю…" className="min-w-0 flex-1 rounded-full bg-[#f2f2f2] px-5 py-3 outline-none"/><button onClick={()=>replyToOrder(order)} className="rounded-full bg-black px-6 py-3 font-semibold text-white">Отправить ответ</button><button onClick={()=>{setOrderFilter(["completed","cancelled"].includes(order.status)?order.status:"active");setTab("orders")}} className="rounded-full border border-black/15 px-5 py-3 font-semibold">Открыть заказ</button></div> : <p className="mt-3 text-sm text-black/45">Заказ был удалён.</p>}
+                  {order ? <div className="mt-4 flex flex-col gap-2 sm:flex-row"><input value={orderReplies[order.id] || ""} onChange={(event)=>setOrderReplies((current)=>({...current,[order.id]:event.target.value}))} placeholder="Ответить покупателю…" className="min-w-0 flex-1 rounded-full bg-[#f2f2f2] px-5 py-3 outline-none"/><button onClick={()=>replyToOrder(order)} className="rounded-full bg-black px-6 py-3 font-semibold text-white">Отправить ответ</button><button onClick={()=>{setOrderFilter(["new","pending"].includes(order.status)?"new":order.status);setTab("orders")}} className="rounded-full border border-black/15 px-5 py-3 font-semibold">Открыть заказ</button></div> : <p className="mt-3 text-sm text-black/45">Заказ был удалён.</p>}
                 </div>})}</div> : <div className="rounded-3xl bg-white p-10 text-center text-black/50">Сообщений от покупателей пока нет</div>}
             </>
           )}
@@ -1111,8 +1111,8 @@ export default function AdminPage() {
                 ЗАКАЗЫ
               </h1>
               <div className="mb-6 flex flex-wrap gap-2">
-                {[["active", "Активные"], ["completed", "Завершённые"], ["cancelled", "Отменённые"]].map(([id, label]) => (
-                  <button key={id} onClick={() => setOrderFilter(id)} className={`rounded-full px-5 py-2 font-semibold ${orderFilter === id ? "bg-black text-white" : "bg-white"}`}>{label} ({orders.filter((order) => id === "active" ? !["completed", "cancelled"].includes(order.status) : order.status === id).length})</button>
+                {[["new", "Новые"], ["processing", "В работе"], ["completed", "Завершённые"], ["cancelled", "Отменённые"]].map(([id, label]) => (
+                  <button key={id} onClick={() => setOrderFilter(id)} className={`rounded-full px-5 py-2 font-semibold ${orderFilter === id ? "bg-black text-white" : "bg-white"}`}>{label} ({orders.filter((order) => id === "new" ? ["new", "pending"].includes(order.status) : order.status === id).length})</button>
                 ))}
               </div>
               {filteredOrders.length ? (
