@@ -2,16 +2,36 @@
 
 import { useState } from 'react';
 import { IoMailOutline } from 'react-icons/io5';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { language } = useLanguage();
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = async (e) => {
     e.preventDefault();
-    if (email) {
-      alert(`Subscribed with ${email}`);
-      setEmail('');
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setStatus(language === 'ru' ? 'Сервис подписки временно недоступен.' : 'Subscription service is temporarily unavailable.');
+      return;
     }
+    setSubmitting(true);
+    setStatus('');
+    const { error } = await supabase.from('newsletter_subscribers').insert({ email: normalizedEmail, language });
+    if (!error) {
+      setEmail('');
+      setStatus(language === 'ru' ? 'Готово! Вы подписались на новости.' : 'Done! You are subscribed to our newsletter.');
+    } else if (error.code === '23505') {
+      setStatus(language === 'ru' ? 'Этот адрес уже подписан на новости.' : 'This email is already subscribed.');
+    } else {
+      setStatus(language === 'ru' ? 'Не удалось оформить подписку. Попробуйте ещё раз.' : 'Could not subscribe. Please try again.');
+    }
+    setSubmitting(false);
   };
 
   return (
@@ -37,10 +57,12 @@ export default function Newsletter() {
           </div>
           <button 
             type="submit"
-            className="w-full bg-white text-black font-satoshi font-medium rounded-full py-3 hover:bg-gray-100 transition-colors"
+            disabled={submitting}
+            className="w-full bg-white text-black font-satoshi font-medium rounded-full py-3 hover:bg-gray-100 transition-colors disabled:cursor-wait disabled:opacity-60"
           >
-            Subscribe to Newsletter
+            {submitting ? (language === 'ru' ? 'Подписываем…' : 'Subscribing…') : 'Subscribe to Newsletter'}
           </button>
+          {status && <p className="rounded-xl bg-white/10 px-4 py-2 text-sm text-white" role="status">{status}</p>}
         </form>
       </div>
     </div>
