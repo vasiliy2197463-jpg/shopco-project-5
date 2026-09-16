@@ -1,7 +1,9 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function PriceSlider({ min = 0, max = 500, value = [50, 200], onChange }) {
+  const { language } = useLanguage();
   const [minVal, setMinVal] = useState(value[0]);
   const [maxVal, setMaxVal] = useState(value[1]);
   const range = useRef(null);
@@ -62,8 +64,8 @@ export default function PriceSlider({ min = 0, max = 500, value = [50, 200], onC
       </div>
 
       <div className="flex items-center justify-between mt-6 text-sm font-medium">
-        <span>${minVal}</span>
-        <span>${maxVal}</span>
+        <span>{language === 'ru' ? `${minVal} $` : `$${minVal}`}</span>
+        <span>{language === 'ru' ? `${maxVal} $` : `$${maxVal}`}</span>
       </div>
     </div>
   );

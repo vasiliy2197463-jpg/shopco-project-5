@@ -62,7 +62,7 @@ export default function OrderSummary({ onCheckout, booking = false }) {
                 setPromoCode && setPromoCode(e.target.value);
                 setPromoError('');
               }}
-              placeholder="Add promo code"
+              placeholder={ru ? 'Введите промокод' : 'Add promo code'}
               className="w-full bg-gray-bg rounded-pill pl-9 pr-3 sm:pl-12 sm:pr-4 py-3 outline-none text-sm sm:text-base text-primary placeholder-gray-500"
             />
           </div>

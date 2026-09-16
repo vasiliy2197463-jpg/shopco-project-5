@@ -347,7 +347,7 @@ export default function Navbar() {
                     <span className="font-satoshi font-medium text-sm">
                       {product.name}
                     </span>
-                    <b className="ml-auto text-sm">${product.price}</b>
+                    <b className="ml-auto text-sm">{language === "ru" ? `${Number(product.price).toLocaleString("ru-RU")} $` : `$${Number(product.price).toLocaleString("en-US")}`}</b>
                   </Link>
                 ))
               ) : (
@@ -534,7 +534,7 @@ export default function Navbar() {
                       className="w-11 h-11 object-cover rounded-lg"
                     />
                     <span className="text-sm font-medium">{product.name}</span>
-                    <b className="ml-auto text-sm">${product.price}</b>
+                    <b className="ml-auto text-sm">{language === "ru" ? `${Number(product.price).toLocaleString("ru-RU")} $` : `$${Number(product.price).toLocaleString("en-US")}`}</b>
                   </Link>
                 ))
               ) : (
