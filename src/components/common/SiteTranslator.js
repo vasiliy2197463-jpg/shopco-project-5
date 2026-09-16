@@ -85,6 +85,9 @@ const PHRASES = [
   ["August", "августа"], ["Add ", "Добавить "], ["Choose ", "Выбрать "], ["Select ", "Выбрать "]
 ];
 
+const originalText = new WeakMap();
+const originalAttributes = new WeakMap();
+
 function translateValue(value) {
   const trimmed = value.trim();
   if (!trimmed) return value;
@@ -104,12 +107,32 @@ function translateTree(root) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
-  nodes.forEach((node) => { node.nodeValue = translateValue(node.nodeValue); });
+  nodes.forEach((node) => {
+    if (!originalText.has(node)) originalText.set(node, node.nodeValue);
+    node.nodeValue = translateValue(node.nodeValue);
+  });
   root.querySelectorAll?.("[placeholder], [aria-label], [title], [alt]").forEach((element) => {
     ["placeholder", "aria-label", "title", "alt"].forEach((attribute) => {
       const value = element.getAttribute(attribute);
-      if (value) element.setAttribute(attribute, translateValue(value));
+      if (value) {
+        if (!originalAttributes.has(element)) originalAttributes.set(element, {});
+        const saved = originalAttributes.get(element);
+        if (!(attribute in saved)) saved[attribute] = value;
+        element.setAttribute(attribute, translateValue(value));
+      }
     });
+  });
+}
+
+function restoreTree(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (originalText.has(node)) node.nodeValue = originalText.get(node);
+  }
+  root.querySelectorAll?.('[placeholder], [aria-label], [title], [alt]').forEach((element) => {
+    const saved = originalAttributes.get(element);
+    if (saved) Object.entries(saved).forEach(([attribute, value]) => element.setAttribute(attribute, value));
   });
 }
 
@@ -118,7 +141,10 @@ export default function SiteTranslator() {
 
   useEffect(() => {
     document.documentElement.lang = language;
-    if (language !== "ru") return;
+    if (language !== "ru") {
+      restoreTree(document.body);
+      return;
+    }
     translateTree(document.body);
     const observer = new MutationObserver((mutations) => mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
       if (node.nodeType === Node.ELEMENT_NODE) translateTree(node);

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { IoOptionsOutline, IoCheckmark, IoChevronUp, IoChevronDown, IoChevronForward, IoClose } from 'react-icons/io5';
 import Button from '@/components/common/Button';
 import PriceSlider from './PriceSlider';
+import { useLanguage } from '@/context/LanguageContext';
 
 const CATEGORIES = ['T-shirts', 'Shorts', 'Shirts', 'Hoodie', 'Jeans'];
 const COLORS = [
@@ -21,6 +22,10 @@ const SIZES = ['XX-Small', 'X-Small', 'Small', 'Medium', 'Large', 'X-Large', 'XX
 const DRESS_STYLES = ['Casual', 'Formal', 'Party', 'Gym'];
 
 export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose, maxPrice = 300 }) {
+  const { language } = useLanguage();
+  const ru = language === 'ru';
+  const categoryNames = { 'T-shirts': 'Футболки', Shorts: 'Шорты', Shirts: 'Рубашки', Hoodie: 'Толстовки', Jeans: 'Джинсы' };
+  const styleNames = { Casual: 'Повседневный', Formal: 'Деловой', Party: 'Для вечеринки', Gym: 'Спортивный' };
   const [expanded, setExpanded] = useState({
     price: true,
     colors: true,
@@ -61,7 +66,7 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
   const sidebarContent = (
     <div className="w-full flex flex-col gap-6">
       <div className="flex items-center justify-between pb-5 border-b border-border">
-        <h2 className="text-xl font-bold">Filters</h2>
+        <h2 className="text-xl font-bold">{ru ? 'Фильтры' : 'Filters'}</h2>
         <IoOptionsOutline className="w-6 h-6 text-gray-500 hidden lg:block" />
         <button onClick={onClose} className="lg:hidden p-1">
           <IoClose className="w-6 h-6" />
@@ -75,7 +80,7 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
             onClick={() => handleCategoryClick(category)}
             className={`flex items-center justify-between py-1 text-base ${filters.selectedCategory?.toLowerCase() === category.toLowerCase() ? 'font-semibold text-primary' : 'text-gray-600'}`}
           >
-            <span>{category}</span>
+            <span>{ru ? categoryNames[category] : category}</span>
             <IoChevronForward className="text-gray-400" />
           </button>
         ))}
@@ -83,7 +88,7 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
 
       <div className="pb-5 border-b border-border">
         <button onClick={() => toggleSection('price')} className="flex items-center justify-between w-full py-2 mb-2 font-bold text-lg">
-          <span>Price</span>
+          <span>{ru ? 'Цена' : 'Price'}</span>
           {expanded.price ? <IoChevronUp /> : <IoChevronDown />}
         </button>
         {expanded.price && (
@@ -93,7 +98,7 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
 
       <div className="pb-5 border-b border-border">
         <button onClick={() => toggleSection('colors')} className="flex items-center justify-between w-full py-2 mb-2 font-bold text-lg">
-          <span>Colors</span>
+          <span>{ru ? 'Цвета' : 'Colors'}</span>
           {expanded.colors ? <IoChevronUp /> : <IoChevronDown />}
         </button>
         {expanded.colors && (
@@ -104,7 +109,7 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
                 onClick={() => handleColorClick(color.name)}
                 className={`w-9 h-9 rounded-full flex items-center justify-center ${color.border ? 'border border-gray-300' : ''}`}
                 style={{ backgroundColor: color.hex }}
-                aria-label={`Select ${color.name}`}
+                aria-label={ru ? `Выбрать цвет ${color.name}` : `Select ${color.name}`}
               >
                 {filters.selectedColors?.includes(color.name) && (
                   <IoCheckmark className={`w-5 h-5 ${color.name === 'white' ? 'text-black' : 'text-white'}`} />
@@ -117,7 +122,7 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
 
       <div className="pb-5 border-b border-border">
         <button onClick={() => toggleSection('size')} className="flex items-center justify-between w-full py-2 mb-2 font-bold text-lg">
-          <span>Size</span>
+          <span>{ru ? 'Размер' : 'Size'}</span>
           {expanded.size ? <IoChevronUp /> : <IoChevronDown />}
         </button>
         {expanded.size && (
@@ -137,7 +142,7 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
 
       <div className="pb-5">
         <button onClick={() => toggleSection('style')} className="flex items-center justify-between w-full py-2 mb-2 font-bold text-lg">
-          <span>Dress Style</span>
+          <span>{ru ? 'Стиль одежды' : 'Dress Style'}</span>
           {expanded.style ? <IoChevronUp /> : <IoChevronDown />}
         </button>
         {expanded.style && (
@@ -148,7 +153,7 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
                 onClick={() => handleStyleClick(style)}
                 className={`flex items-center justify-between py-1 text-base ${filters.selectedStyle === style ? 'font-semibold text-primary' : 'text-gray-600'}`}
               >
-                <span>{style}</span>
+                <span>{ru ? styleNames[style] : style}</span>
                 <IoChevronForward className="text-gray-400" />
               </button>
             ))}
@@ -156,7 +161,7 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
         )}
       </div>
 
-      <Button variant="primary" className="w-full mt-2" onClick={onClose}>Apply Filter</Button>
+      <Button variant="primary" className="w-full mt-2" onClick={onClose}>{ru ? 'Применить фильтр' : 'Apply Filter'}</Button>
     </div>
   );
 
