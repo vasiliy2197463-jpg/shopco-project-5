@@ -365,13 +365,20 @@ export default function AdminPage() {
       .update({ answer, answered_at: new Date().toISOString() })
       .eq("id", item.id);
     if (error) return setNotice(`Ошибка: ${error.message}`);
+    const product = products.find((candidate) => Number(candidate.id) === Number(item.product_id));
+    await supabase.from("order_notifications").insert({
+      user_id: item.user_id,
+      sender: "admin",
+      message: `QUESTION_ANSWER:${product?.name || "SHOP.CO"}:${answer}`,
+      allow_reply: false,
+    });
     setQuestions((current) =>
       current.map((question) =>
         question.id === item.id ? { ...question, answer } : question,
       ),
     );
     setQuestionReplies((current) => ({ ...current, [item.id]: "" }));
-    setNotice("Ответ опубликован на странице товара");
+    setNotice("Ответ опубликован, покупателю отправлено уведомление");
   };
 
   const deleteQuestion = async (item) => {
