@@ -1,12 +1,14 @@
+import InfoContent from "@/components/info/InfoContent";
+
 const pages = {
-  about:{title:"О магазине SHOP.CO",text:"Учебный интернет-магазин одежды. Здесь можно выбирать варианты товара, оформлять бронирование и общаться с магазином через личный кабинет."},
-  delivery:{title:"Доставка",text:"При оформлении выберите курьера или пункт выдачи. Срок и стоимость подтверждает администратор в сообщении по заказу."},
-  returns:{title:"Возврат товара",text:"Неношеный товар можно вернуть в течение 30 дней. Сохраните упаковку и напишите администратору через уведомления заказа."},
-  terms:{title:"Условия использования",text:"Оформление в текущей учебной версии является бронированием. Настоящее списание денежных средств не производится."},
-  privacy:{title:"Политика конфиденциальности",text:"Данные аккаунта и заказа используются только для работы магазина. Пароли обрабатывает защищённая система Supabase Auth и магазин их не видит."},
-  support:{title:"Поддержка покупателей",text:"Задайте вопрос на странице товара или ответьте администратору в уведомлениях личного кабинета."},
-  payments:{title:"Оплата",text:"Доступны бронирование без оплаты, демонстрационная карта и демонстрационный СБП. Реальная оплата пока не подключена."},
-  sizes:{title:"Таблица размеров",text:"Small — небольшой, Medium — средний, Large — большой, X-Large — очень большой. Перед заказом сверяйтесь с описанием конкретного товара."},
+  about:{ru:{title:"О магазине SHOP.CO",text:"Учебный интернет-магазин одежды. Здесь можно выбирать варианты товара, оформлять бронирование и общаться с магазином через личный кабинет."},en:{title:"About SHOP.CO",text:"A demo online clothing store where you can choose product variants, reserve orders, and contact the store through your account."}},
+  delivery:{ru:{title:"Доставка",text:"При оформлении выберите курьера или пункт выдачи. Срок и стоимость подтверждает администратор в сообщении по заказу."},en:{title:"Delivery",text:"Choose courier delivery or a pickup point at checkout. The administrator will confirm the delivery time and cost in an order message."}},
+  returns:{ru:{title:"Возврат товара",text:"Неношеный товар можно вернуть в течение 30 дней. Сохраните упаковку и напишите администратору через уведомления заказа."},en:{title:"Returns",text:"Unused items can be returned within 30 days. Keep the packaging and contact the administrator through your order notifications."}},
+  terms:{ru:{title:"Условия использования",text:"Оформление в текущей учебной версии является бронированием. Настоящее списание денежных средств не производится."},en:{title:"Terms and Conditions",text:"Checkout in this demo version creates a reservation. No real payment is charged."}},
+  privacy:{ru:{title:"Политика конфиденциальности",text:"Данные аккаунта и заказа используются только для работы магазина. Пароли обрабатывает защищённая система Supabase Auth, и магазин их не видит."},en:{title:"Privacy Policy",text:"Account and order details are used only to operate the store. Passwords are handled by Supabase Auth and are never visible to the store."}},
+  support:{ru:{title:"Поддержка покупателей",text:"Задайте вопрос на странице товара или ответьте администратору в уведомлениях личного кабинета."},en:{title:"Customer Support",text:"Ask a question on a product page or reply to the administrator through notifications in your account."}},
+  payments:{ru:{title:"Оплата",text:"Доступны бронирование без оплаты, демонстрационная карта и демонстрационный СБП. Реальная оплата пока не подключена."},en:{title:"Payments",text:"Reservation without payment, a demo bank card, and a demo fast-payment option are available. Real payments are not connected yet."}},
+  sizes:{ru:{title:"Таблица размеров",text:"Small — небольшой, Medium — средний, Large — большой, X-Large — очень большой. Перед заказом сверяйтесь с описанием конкретного товара."},en:{title:"Size Guide",text:"Small, Medium, Large, and X-Large follow standard sizing. Check the measurements for the specific product before ordering."}},
 };
 export function generateStaticParams(){return Object.keys(pages).map((slug)=>({slug}));}
-export default async function InfoPage({params}){const {slug}=await params;const page=pages[slug]||pages.support;return <main className="container-main py-12 md:py-20"><div className="mx-auto max-w-3xl rounded-[32px] bg-[#f2f2f2] p-7 md:p-12"><h1 className="font-integral text-3xl font-bold md:text-5xl">{page.title}</h1><p className="mt-6 text-lg leading-8 text-black/65">{page.text}</p></div></main>}
+export default async function InfoPage({params}){const {slug}=await params;return <InfoContent page={pages[slug]||pages.support}/>;}
