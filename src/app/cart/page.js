@@ -7,7 +7,7 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function CartPage() {
   const { items, clearCart, subtotal, discountAmount, deliveryFee, total } =
@@ -18,6 +18,12 @@ export default function CartPage() {
   const [bookingNotice, setBookingNotice] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkout, setCheckout] = useState({ fullName: "", phone: "", city: "", address: "", postalCode: "", deliveryMethod: "courier", paymentMethod: "reservation", notes: "" });
+
+  useEffect(() => {
+    const details = user?.user_metadata;
+    if (!details) return;
+    setCheckout((current) => ({ ...current, fullName: current.fullName || details.full_name || "", phone: current.phone || details.phone || "", city: current.city || details.city || "", address: current.address || details.address || "", postalCode: current.postalCode || details.postal_code || "" }));
+  }, [user]);
 
   const reserveOrder = async () => {
     if (!checkoutOpen) { setCheckoutOpen(true); return; }
