@@ -454,6 +454,7 @@ export default function AdminPage() {
       product.name.toLowerCase().includes(query.toLowerCase()),
   );
   const trashedProducts = products.filter((product) => product.archived);
+  const lowStockProducts = products.filter((product) => !product.archived && Number(product.stock || 0) <= 5);
   const inventoryValue = products
     .filter((product) => !product.archived)
     .reduce(
@@ -515,6 +516,7 @@ export default function AdminPage() {
           {[
             ["overview", "Обзор"],
             ["products", "Товары"],
+            ["stock", `Остатки (${lowStockProducts.length})`],
             ["trash", `Корзина (${trashedProducts.length})`],
             ["promos", "Промокоды"],
             ["reviews", `Отзывы (${reviews.filter((item) => !item.approved).length} на проверке)`],
@@ -575,6 +577,7 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
+              {lowStockProducts.length > 0 && <div className="mt-6 rounded-3xl border border-red-200 bg-red-50 p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-bold text-red-800">Товары заканчиваются</h2><p className="mt-1 text-sm text-red-700">У {lowStockProducts.length} позиций осталось не больше пяти единиц.</p></div><button onClick={()=>setTab("stock")} className="rounded-full bg-red-700 px-5 py-2.5 font-semibold text-white">Проверить остатки</button></div></div>}
               {!supabase && (
                 <div className="mt-6 rounded-3xl border border-amber-300 bg-amber-50 p-6">
                   <h2 className="text-xl font-bold">
@@ -589,6 +592,8 @@ export default function AdminPage() {
               )}
             </>
           )}
+
+          {!loading && tab === "stock" && <><h1 className="mb-2 font-integral text-3xl font-bold md:text-5xl">ОСТАТКИ</h1><p className="mb-6 text-black/50">Товары, которые закончились или скоро закончатся</p>{lowStockProducts.length?<div className="space-y-3">{lowStockProducts.sort((a,b)=>Number(a.stock)-Number(b.stock)).map((product)=><div key={product.id} className="flex flex-wrap items-center justify-between gap-4 rounded-3xl bg-white p-5 shadow-sm"><div><div className="font-bold">{product.name}</div><div className="text-sm text-black/45">{product.category}</div></div><div className={`rounded-full px-4 py-2 font-bold ${Number(product.stock)===0?"bg-red-100 text-red-800":"bg-amber-100 text-amber-800"}`}>{Number(product.stock)===0?"Нет в наличии":`Осталось: ${product.stock}`}</div><button onClick={()=>{setQuery(product.name);setTab("products")}} className="rounded-full border border-black/15 px-5 py-2.5 font-semibold">Редактировать</button></div>)}</div>:<div className="rounded-3xl bg-white p-10 text-center text-black/50">Все товары есть в достаточном количестве</div>}</>}
 
           {!loading && tab === "products" && (
             <>
