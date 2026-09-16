@@ -15,7 +15,7 @@ export default function Newsletter() {
   };
 
   return (
-    <div className="w-full px-4 md:px-6 relative z-10 my-[10px]">
+    <div className="relative z-10 mt-[30px] mb-[10px] w-full px-4 md:px-6">
       <div className="max-w-[1240px] mx-auto bg-black rounded-[20px] px-6 py-8 md:px-16 md:py-9 flex flex-col md:flex-row md:items-center md:justify-between gap-8 shadow-lg">
         <h2 className="font-integral text-[24px] sm:text-[32px] md:text-[40px] font-bold text-white leading-tight md:max-w-[550px]">
           STAY UPTO DATE ABOUT OUR LATEST OFFERS
