@@ -18,7 +18,7 @@ export function CartProvider({ children }) {
       try {
         const savedItems = JSON.parse(savedCart);
         const restoredItems = savedItems.map((item) => {
-          const product = products.find((candidate) => String(candidate.id) === String(item.id));
+          const product = products.find((candidate) => candidate.name.toLowerCase() === String(item.name || "").toLowerCase()) || products.find((candidate) => String(candidate.id) === String(item.id));
           const savedColor = String(item.color || '').toLowerCase();
           const color = product?.availableColors?.find((candidate) => {
             const candidateColor = candidate.name.toLowerCase();
@@ -40,7 +40,7 @@ export function CartProvider({ children }) {
   useEffect(() => {
     if (!products?.length) return;
     setItems((current) => current.map((item) => {
-      const product = products.find((candidate) => String(candidate.id) === String(item.id)) || products.find((candidate) => candidate.name.toLowerCase() === String(item.name || "").toLowerCase());
+      const product = products.find((candidate) => candidate.name.toLowerCase() === String(item.name || "").toLowerCase()) || products.find((candidate) => String(candidate.id) === String(item.id));
       if (!product) return item;
       const savedColor = String(item.color || "").toLowerCase();
       const color = product.availableColors?.find((candidate) => {

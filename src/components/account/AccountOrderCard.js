@@ -15,7 +15,7 @@ export default function AccountOrderCard({ order, language }) {
   const [notice, setNotice] = useState("");
   const repeatOrder = () => {
     order.order_items?.forEach((item) => {
-      const product = products.find((candidate) => String(candidate.id) === String(item.product_id)) || products.find((candidate) => candidate.name.toLowerCase() === String(item.product_name || "").toLowerCase());
+      const product = products.find((candidate) => candidate.name.toLowerCase() === String(item.product_name || "").toLowerCase()) || products.find((candidate) => String(candidate.id) === String(item.product_id));
       const colorName = String(item.color || "").toLowerCase();
       const variant = product?.availableColors?.find((candidate) => candidate.name.toLowerCase() === colorName || colorName.startsWith(candidate.name.toLowerCase()) || candidate.name.toLowerCase().startsWith(colorName));
       addToCart({ id: item.product_id, name: item.product_name, price: Number(item.unit_price), color: item.color, size: item.size, quantity: Number(item.quantity), image: variant?.image || product?.images?.[0] });
