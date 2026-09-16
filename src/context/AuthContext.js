@@ -11,7 +11,13 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const supabase = getSupabaseBrowserClient();
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setLoadingTimedOut(true), 6000);
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
@@ -34,6 +40,7 @@ export function AuthProvider({ children }) {
     }
 
     setProfileLoading(true);
+    const timeout = setTimeout(() => { if (active) setProfileLoading(false); }, 5000);
     supabase
       .from("profiles")
       .select("full_name, role")
@@ -43,10 +50,7 @@ export function AuthProvider({ children }) {
         if (!active) return;
         setProfile(data || null);
         setProfileLoading(false);
-      })
-      .catch(() => { if (active) setProfileLoading(false); });
-
-    const timeout = setTimeout(() => { if (active) setProfileLoading(false); }, 8000);
+      });
 
     return () => { active = false; clearTimeout(timeout); };
   }, [supabase, user]);
@@ -65,7 +69,7 @@ export function AuthProvider({ children }) {
   const isAdmin = profile?.role === "admin";
   const isOwnerAdmin = isAdmin && user?.email?.toLowerCase() === OWNER_ADMIN_EMAIL;
 
-  return <AuthContext.Provider value={{ user, profile, isAdmin, isOwnerAdmin, loading: loading || profileLoading, configured: Boolean(supabase), signUp, signIn, signInWithGoogle, signOut, resetPassword, updateCustomerDetails }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, profile, isAdmin, isOwnerAdmin, loading: (loading || profileLoading) && !loadingTimedOut, configured: Boolean(supabase), signUp, signIn, signInWithGoogle, signOut, resetPassword, updateCustomerDetails }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
