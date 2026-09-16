@@ -49,6 +49,7 @@ export default function AdminPage() {
   const [orders, setOrders] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [questions, setQuestions] = useState([]);
+  const [subscribers, setSubscribers] = useState([]);
   const [questionReplies, setQuestionReplies] = useState({});
   const [orderFilter, setOrderFilter] = useState("new");
   const [orderReplies, setOrderReplies] = useState({});
@@ -86,6 +87,7 @@ export default function AdminPage() {
         { data: dbReviews },
         { data: dbQuestions },
         { data: dbMessages },
+        { data: dbSubscribers },
       ] = await Promise.all([
         supabase
           .from("products")
@@ -113,6 +115,10 @@ export default function AdminPage() {
           .eq("sender", "customer")
           .order("created_at", { ascending: false })
           .limit(100),
+        supabase
+          .from("newsletter_subscribers")
+          .select("*")
+          .order("created_at", { ascending: false }),
       ]);
       if (dbProducts?.length) {
         const sourceById = new Map(
@@ -141,6 +147,7 @@ export default function AdminPage() {
       if (dbReviews) setReviews(dbReviews);
       if (dbQuestions) setQuestions(dbQuestions);
       if (dbMessages) setCustomerMessages(dbMessages);
+      if (dbSubscribers) setSubscribers(dbSubscribers);
       setLoading(false);
     };
     load();
@@ -519,6 +526,7 @@ export default function AdminPage() {
             ["stock", `Остатки (${lowStockProducts.length})`],
             ["trash", `Корзина (${trashedProducts.length})`],
             ["promos", "Промокоды"],
+            ["subscribers", `Подписчики (${subscribers.length})`],
             ["reviews", `Отзывы (${reviews.filter((item) => !item.approved).length} на проверке)`],
             ["messages", `Сообщения (${customerMessages.filter((item) => !item.is_read).length})`],
             [
@@ -563,6 +571,7 @@ export default function AdminPage() {
                     products.reduce((s, p) => s + Number(p.stock || 0), 0),
                   ],
                   ["Заказов", orders.length],
+                  ["Подписчиков", subscribers.filter((item) => item.active !== false).length],
                   [
                     "Стоимость запасов",
                     `$${inventoryValue.toLocaleString("en-US")}`,
@@ -904,6 +913,37 @@ export default function AdminPage() {
               ) : (
                 <div className="rounded-3xl bg-white p-10 text-center text-black/50">
                   Корзина пуста
+                </div>
+              )}
+            </>
+          )}
+
+          {!loading && tab === "subscribers" && (
+            <>
+              <div className="mb-6">
+                <h1 className="font-integral text-3xl font-bold md:text-5xl">
+                  ПОДПИСЧИКИ
+                </h1>
+                <p className="mt-2 text-black/50">
+                  Пользователи, которые подписались на новости и специальные предложения.
+                </p>
+              </div>
+              {subscribers.length ? (
+                <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
+                  <div className="hidden grid-cols-[1fr_120px_180px] gap-4 border-b border-black/10 bg-black px-6 py-4 text-sm font-bold text-white sm:grid">
+                    <span>Email</span><span>Язык</span><span>Дата подписки</span>
+                  </div>
+                  {subscribers.map((subscriber) => (
+                    <div key={subscriber.id} className="grid gap-2 border-b border-black/5 px-5 py-4 last:border-0 sm:grid-cols-[1fr_120px_180px] sm:items-center sm:gap-4 sm:px-6">
+                      <a href={`mailto:${subscriber.email}`} className="min-w-0 break-all font-semibold hover:underline">{subscriber.email}</a>
+                      <span className="w-fit rounded-full bg-[#f2f2f2] px-3 py-1 text-sm font-bold uppercase">{subscriber.language || "en"}</span>
+                      <span className="text-sm text-black/50">{new Date(subscriber.created_at).toLocaleString("ru-RU")}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-3xl bg-white p-10 text-center text-black/50">
+                  Подписчиков пока нет
                 </div>
               )}
             </>
