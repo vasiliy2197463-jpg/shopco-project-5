@@ -182,7 +182,7 @@ export default function Navbar() {
     const nextOpen = !notificationsOpen;
     setNotificationsOpen(nextOpen);
     if (
-      nextOpen &&
+      !nextOpen &&
       user &&
       supabase &&
       notifications.some((item) => !item.is_read)
@@ -198,7 +198,7 @@ export default function Navbar() {
     }
   };
 
-  const unreadCount = notifications.filter((item) => !item.is_read).length;
+  const unreadCount = notifications.filter((item) => item.sender !== "customer" && !item.is_read).length;
 
   return (
     <nav
