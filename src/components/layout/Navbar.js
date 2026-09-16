@@ -388,7 +388,7 @@ export default function Navbar() {
 
           <Link
             href="/wishlist"
-            className="relative inline-flex h-10 w-10 items-center justify-center text-black hover:text-gray-600 transition-colors"
+            className="relative hidden h-10 w-10 items-center justify-center text-black hover:text-gray-600 transition-colors sm:inline-flex"
             aria-label={language === "ru" ? "Избранное" : "Wishlist"}
           >
             <IoHeartOutline size={24} className="md:h-7 md:w-7" />
@@ -578,6 +578,18 @@ export default function Navbar() {
             onClick={() => setIsMenuOpen(false)}
           >
             {language === "ru" ? "Главная" : "Home"}
+          </Link>
+          <Link
+            href={user ? "/account" : "/signup"}
+            className="flex items-center gap-3 font-medium hover:text-gray-600 transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <IoPersonOutline size={23} />
+            <span>
+              {user
+                ? language === "ru" ? "Личный кабинет" : "My account"
+                : language === "ru" ? "Войти в аккаунт" : "Sign in"}
+            </span>
           </Link>
           {user && (
             <Link
