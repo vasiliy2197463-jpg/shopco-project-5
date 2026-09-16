@@ -6,12 +6,16 @@ import FilterSidebar from '@/components/category/FilterSidebar';
 import ProductGrid from '@/components/category/ProductGrid';
 import Pagination from '@/components/category/Pagination';
 import { useCatalog } from '@/context/CatalogContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function CategoryPage() {
   const { products: allProducts } = useCatalog();
+  const { language } = useLanguage();
+  const ru = language === 'ru';
   const params = useParams();
   const slug = params?.slug || 'all';
   const displayCategory = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
+  const localizedCategory = ru ? ({ all: 'Все товары', 't-shirts': 'Футболки', shorts: 'Шорты', shirts: 'Рубашки', hoodie: 'Толстовки', jeans: 'Джинсы', casual: 'Повседневный стиль', formal: 'Деловой стиль', party: 'Для вечеринки', gym: 'Спортивный стиль' }[slug.toLowerCase()] || displayCategory) : displayCategory;
   const categoryBySlug = {
     't-shirts': 't-shirts',
     shorts: 'shorts',
@@ -153,8 +157,8 @@ export default function CategoryPage() {
     <div className="container-main py-6">
       <div className="mb-6">
         <Breadcrumb items={[
-          { label: 'Home', href: '/' },
-          { label: displayCategory }
+          { label: ru ? 'Главная' : 'Home', href: '/' },
+          { label: localizedCategory }
         ]} />
       </div>
 
@@ -185,7 +189,7 @@ export default function CategoryPage() {
         <div className="flex-1 w-full min-w-0">
           <ProductGrid 
             products={paginatedProducts} 
-            category={displayCategory} 
+            category={localizedCategory}
             totalProducts={filteredProducts.length} 
             onSortChange={handleSortChange}
             onOpenFilter={() => setIsMobileFilterOpen(true)}

@@ -6,6 +6,7 @@ import OrderSummary from "@/components/cart/OrderSummary";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCatalog } from "@/context/CatalogContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -14,6 +15,8 @@ export default function CartPage() {
   const { items, clearCart, subtotal, discountAmount, deliveryFee, total } =
     useCart();
   const { user } = useAuth();
+  const { language } = useLanguage();
+  const ru = language === "ru";
   const { loading: catalogLoading } = useCatalog();
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [booking, setBooking] = useState(false);
@@ -30,16 +33,16 @@ export default function CartPage() {
   const reserveOrder = async () => {
     if (!checkoutOpen) { setCheckoutOpen(true); return; }
     if (!user) {
-      setBookingNotice("Чтобы забронировать заказ, войдите в аккаунт.");
+      setBookingNotice(ru ? "Чтобы забронировать заказ, войдите в аккаунт." : "Sign in to reserve your order.");
       return;
     }
     if (!supabase || !items.length) return;
     if (catalogLoading) {
-      setBookingNotice("Проверяем наличие товаров. Попробуйте ещё раз через несколько секунд.");
+      setBookingNotice(ru ? "Проверяем наличие товаров. Попробуйте ещё раз через несколько секунд." : "We are checking product availability. Please try again in a few seconds.");
       return;
     }
     if (!checkout.fullName.trim() || !checkout.phone.trim() || !checkout.city.trim() || !checkout.address.trim()) {
-      setBookingNotice("Заполните имя, телефон, город и адрес доставки.");
+      setBookingNotice(ru ? "Заполните имя, телефон, город и адрес доставки." : "Enter your name, phone number, city, and delivery address.");
       return;
     }
     setBooking(true);
@@ -48,7 +51,7 @@ export default function CartPage() {
       .from("products")
       .select("id,name,stock,active,archived");
     if (catalogError) {
-      setBookingNotice("Не удалось проверить наличие товаров. Заказ не создан — попробуйте ещё раз.");
+      setBookingNotice(ru ? "Не удалось проверить наличие товаров. Заказ не создан — попробуйте ещё раз." : "We could not check product availability. The order was not created; please try again.");
       setBooking(false);
       return;
     }
@@ -61,7 +64,7 @@ export default function CartPage() {
         || Number(product.stock || 0) < Number(item.quantity || 1);
     });
     if (unavailableItems.length) {
-      setBookingNotice("Один или несколько товаров уже удалены, скрыты или закончились. Корзина обновлена — проверьте её перед бронированием.");
+      setBookingNotice(ru ? "Один или несколько товаров уже удалены, скрыты или закончились. Корзина обновлена — проверьте её перед бронированием." : "One or more products were removed, hidden, or sold out. Review your updated cart before reserving.");
       setBooking(false);
       return;
     }
@@ -88,7 +91,7 @@ export default function CartPage() {
       .select()
       .single();
     if (error) {
-      setBookingNotice(`Не удалось создать заказ: ${error.message}`);
+      setBookingNotice(`${ru ? "Не удалось создать заказ" : "Could not create the order"}: ${error.message}`);
       setBooking(false);
       return;
     }
@@ -107,7 +110,7 @@ export default function CartPage() {
     if (itemsError) {
       await supabase.from("orders").delete().eq("id", order.id);
       setBookingNotice(
-        `Не удалось сохранить состав заказа: ${itemsError.message}`,
+        `${ru ? "Не удалось сохранить состав заказа" : "Could not save the order contents"}: ${itemsError.message}`,
       );
       setBooking(false);
       return;
@@ -115,16 +118,16 @@ export default function CartPage() {
     clearCart();
     setCheckoutOpen(false);
     setBookingNotice(
-      `Заказ №${order.id} забронирован. Администратор уже увидит его в панели.`,
+      ru ? `Заказ №${order.id} забронирован. Администратор уже увидит его в панели.` : `Order #${order.id} has been reserved. The administrator can now see it in the dashboard.`,
     );
     setBooking(false);
   };
 
   const breadcrumbItems = [
-    { label: "Home", href: "/" },
-    { label: "Cart", href: "/cart" },
+    { label: ru ? "Главная" : "Home", href: "/" },
+    { label: ru ? "Корзина" : "Cart", href: "/cart" },
   ];
-  const bookingIsError = /(не удалось|заполните|войдите|недоступ|удалены|законч|ошибка|проверяем)/i.test(bookingNotice);
+  const bookingIsError = /(не удалось|заполните|войдите|недоступ|удалены|законч|ошибка|проверяем|could not|enter your|sign in|removed|sold out|checking)/i.test(bookingNotice);
 
   return (
     <main className="container-main py-6">
@@ -133,7 +136,7 @@ export default function CartPage() {
       </div>
 
       <h1 className="font-integral text-[32px] md:text-[40px] font-bold mb-6 text-primary uppercase">
-        Your Cart
+        {ru ? "Ваша корзина" : "Your Cart"}
       </h1>
 
       {bookingNotice && (
@@ -141,7 +144,7 @@ export default function CartPage() {
           {bookingNotice}{" "}
           {!user && (
             <Link href="/signup" className="ml-2 underline">
-              Войти
+              {ru ? "Войти" : "Sign in"}
             </Link>
           )}
         </div>
@@ -150,13 +153,13 @@ export default function CartPage() {
       {!items || items.length === 0 ? (
         <div className="border border-border rounded-[20px] p-6 text-center flex flex-col items-center">
           <p className="text-lg text-gray-600 mb-6">
-            Your cart is currently empty.
+            {ru ? "Ваша корзина пока пуста." : "Your cart is currently empty."}
           </p>
           <Link
             href="/"
             className="inline-flex bg-primary text-white font-medium rounded-pill px-8 py-3 hover:opacity-80 transition-opacity"
           >
-            Continue Shopping
+            {ru ? "Продолжить покупки" : "Continue Shopping"}
           </Link>
         </div>
       ) : (
@@ -174,7 +177,7 @@ export default function CartPage() {
 
           <div className="flex-1">
             <div className="sticky top-24">
-              {checkoutOpen && <div className="mb-5 rounded-[20px] border border-border bg-white p-5"><h2 className="text-xl font-bold">Данные для оформления</h2><p className="mt-1 text-sm text-black/50">Оплата работает в безопасном учебном режиме — деньги не списываются.</p><div className="mt-4 grid gap-3 sm:grid-cols-2">{[["fullName","Имя и фамилия"],["phone","Телефон"],["city","Город"],["address","Адрес доставки"],["postalCode","Индекс (необязательно)"]].map(([field,label])=><input key={field} value={checkout[field]} onChange={(e)=>setCheckout((value)=>({...value,[field]:e.target.value}))} placeholder={label} className={`rounded-2xl bg-[#f2f2f2] px-4 py-3 outline-none focus:ring-2 focus:ring-black ${field==="address"?"sm:col-span-2":""}`}/>)}<select value={checkout.deliveryMethod} onChange={(e)=>setCheckout((value)=>({...value,deliveryMethod:e.target.value}))} className="rounded-2xl bg-[#f2f2f2] px-4 py-3"><option value="courier">Курьерская доставка</option><option value="pickup">Пункт выдачи</option></select><select value={checkout.paymentMethod} onChange={(e)=>setCheckout((value)=>({...value,paymentMethod:e.target.value}))} className="rounded-2xl bg-[#f2f2f2] px-4 py-3"><option value="reservation">Бронирование без оплаты</option><option value="card_test">Банковская карта — тест</option><option value="sbp_test">СБП — тест</option></select><textarea value={checkout.notes} onChange={(e)=>setCheckout((value)=>({...value,notes:e.target.value}))} placeholder="Комментарий к заказу" rows="3" className="resize-none rounded-2xl bg-[#f2f2f2] px-4 py-3 sm:col-span-2"/></div></div>}
+              {checkoutOpen && <div className="mb-5 rounded-[20px] border border-border bg-white p-5"><h2 className="text-xl font-bold">{ru ? "Данные для оформления" : "Checkout details"}</h2><p className="mt-1 text-sm text-black/50">{ru ? "Оплата работает в безопасном учебном режиме — деньги не списываются." : "Payment works in safe demo mode; no money will be charged."}</p><div className="mt-4 grid gap-3 sm:grid-cols-2">{[["fullName",ru?"Имя и фамилия":"Full name"],["phone",ru?"Телефон":"Phone"],["city",ru?"Город":"City"],["address",ru?"Адрес доставки":"Delivery address"],["postalCode",ru?"Индекс (необязательно)":"Postal code (optional)"]].map(([field,label])=><input key={field} value={checkout[field]} onChange={(e)=>setCheckout((value)=>({...value,[field]:e.target.value}))} placeholder={label} className={`rounded-2xl bg-[#f2f2f2] px-4 py-3 outline-none focus:ring-2 focus:ring-black ${field==="address"?"sm:col-span-2":""}`}/>)}<select aria-label={ru?"Способ доставки":"Delivery method"} value={checkout.deliveryMethod} onChange={(e)=>setCheckout((value)=>({...value,deliveryMethod:e.target.value}))} className="rounded-2xl bg-[#f2f2f2] px-4 py-3"><option value="courier">{ru?"Курьерская доставка":"Courier delivery"}</option><option value="pickup">{ru?"Пункт выдачи":"Pickup point"}</option></select><select aria-label={ru?"Способ оплаты":"Payment method"} value={checkout.paymentMethod} onChange={(e)=>setCheckout((value)=>({...value,paymentMethod:e.target.value}))} className="rounded-2xl bg-[#f2f2f2] px-4 py-3"><option value="reservation">{ru?"Бронирование без оплаты":"Reservation without payment"}</option><option value="card_test">{ru?"Банковская карта — тест":"Bank card — demo"}</option><option value="sbp_test">{ru?"СБП — тест":"Fast payment — demo"}</option></select><textarea value={checkout.notes} onChange={(e)=>setCheckout((value)=>({...value,notes:e.target.value}))} placeholder={ru?"Комментарий к заказу":"Order note"} rows="3" className="resize-none rounded-2xl bg-[#f2f2f2] px-4 py-3 sm:col-span-2"/></div></div>}
               <OrderSummary onCheckout={reserveOrder} booking={booking} />
             </div>
           </div>
