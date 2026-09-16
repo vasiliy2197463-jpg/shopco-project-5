@@ -1,0 +1,10 @@
+"use client";
+import Link from "next/link";
+import Image from "@/components/common/BaseImage";
+import { useCompare } from "@/context/CompareContext";
+
+export default function ComparePage() {
+  const { items, toggleCompare, clearCompare } = useCompare();
+  if (!items.length) return <main className="container-main min-h-[50vh] py-20 text-center"><h1 className="font-integral text-4xl font-bold">COMPARE PRODUCTS</h1><p className="mt-4 text-black/50">Add products to compare their details.</p><Link href="/category/all" className="mt-7 inline-block rounded-full bg-black px-8 py-3 font-semibold text-white">Open catalog</Link></main>;
+  return <main className="container-main py-10 md:py-16"><div className="flex flex-wrap items-center justify-between gap-4"><h1 className="font-integral text-3xl font-bold md:text-5xl">COMPARE PRODUCTS</h1><button onClick={clearCompare} className="rounded-full border border-black/15 px-5 py-2.5 font-semibold">Clear all</button></div><div className="mt-8 overflow-x-auto"><div className="grid min-w-[700px] gap-4" style={{gridTemplateColumns:`repeat(${items.length},minmax(210px,1fr))`}}>{items.map((product)=><article key={product.id} className="rounded-3xl border border-black/10 p-4"><Link href={`/item/?id=${product.id}`}><div className="relative aspect-square rounded-2xl bg-[#f2f2f2]"><Image src={product.images?.[0]} alt={product.name} fill className="object-contain p-3" /></div><h2 className="mt-4 font-bold">{product.name}</h2></Link><div className="mt-4 space-y-3 text-sm"><p><b>Price:</b> ${product.price}</p><p><b>Rating:</b> {product.rating}/5</p><p><b>Category:</b> {product.category}</p><p><b>Colors:</b> {product.availableColors?.map((color)=>color.name).join(", ") || "—"}</p><p><b>Sizes:</b> {product.availableSizes?.join(", ") || "—"}</p><p><b>Stock:</b> {product.stock ?? "—"}</p></div><button onClick={()=>toggleCompare(product)} className="mt-5 w-full rounded-full bg-black py-2.5 font-semibold text-white">Remove</button></article>)}</div></div></main>;
+}

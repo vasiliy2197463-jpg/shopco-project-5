@@ -6,6 +6,7 @@ import SiteTranslator from "@/components/common/SiteTranslator";
 import { AuthProvider } from "@/context/AuthContext";
 import { CatalogProvider } from "@/context/CatalogContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { CompareProvider } from "@/context/CompareContext";
 
 export const metadata = {
   title: "SHOP.CO | Find Clothes That Matches Your Style",
@@ -25,9 +26,9 @@ export default function RootLayout({ children }) {
           <AuthProvider>
             <CatalogProvider>
               <WishlistProvider>
-                <CartProvider>
+                <CompareProvider><CartProvider>
                   <StorefrontChrome>{children}</StorefrontChrome>
-                </CartProvider>
+                </CartProvider></CompareProvider>
               </WishlistProvider>
             </CatalogProvider>
           </AuthProvider>

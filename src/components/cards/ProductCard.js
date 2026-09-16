@@ -3,15 +3,17 @@
 import Image from "@/components/common/BaseImage";
 import Link from "next/link";
 import { useState } from "react";
-import { IoCartOutline, IoCheckmark, IoHeart, IoHeartOutline } from "react-icons/io5";
+import { IoCartOutline, IoCheckmark, IoHeart, IoHeartOutline, IoGitCompareOutline } from "react-icons/io5";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import RatingStars from "@/components/common/RatingStars";
 import Price from "@/components/common/Price";
+import { useCompare } from "@/context/CompareContext";
 
 export default function ProductCard({ product, priority = false }) {
   const { items, addToCart, increaseQuantity, decreaseQuantity } = useCart();
   const { toggleWishlist, isFavorite } = useWishlist();
+  const { toggleCompare, isCompared } = useCompare();
   const [added, setAdded] = useState(false);
   const defaultSize = product.availableSizes?.[0] || "Medium";
   const [selectedColor, setSelectedColor] = useState(
@@ -129,6 +131,7 @@ export default function ProductCard({ product, priority = false }) {
           />
         ))}
       </div>
+      <button onClick={() => toggleCompare(product)} className={`mt-3 flex items-center gap-2 text-xs font-semibold ${isCompared(product.id) ? "text-green-700" : "text-black/55"}`}><IoGitCompareOutline size={17} />{isCompared(product.id) ? "Added to compare" : "Compare"}</button>
     </article>
   );
 }

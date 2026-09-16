@@ -457,7 +457,6 @@ export default function Navbar() {
               )}
             </div>
           )}
-
           <Link
             href="/account"
             className="inline-flex h-10 w-10 items-center justify-center text-black hover:text-gray-600 transition-colors"
@@ -590,6 +589,7 @@ export default function Navbar() {
               {unreadCount > 0 && <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#FF3333] px-1.5 text-xs font-bold text-white">{unreadCount}</span>}
             </Link>
           )}
+          <Link href="/compare" className="font-medium hover:text-gray-600 transition-colors" onClick={() => setIsMenuOpen(false)}>{language === "ru" ? "Сравнение товаров" : "Compare products"}</Link>
           <Link
             href="/category/casual"
             className="font-medium hover:text-gray-600 transition-colors"
