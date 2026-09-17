@@ -23,6 +23,8 @@ export default function CartPage() {
   const [bookingNotice, setBookingNotice] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkout, setCheckout] = useState({ fullName: "", phone: "", city: "", address: "", postalCode: "", deliveryMethod: "courier", paymentMethod: "reservation", notes: "" });
+  const [demoPayment, setDemoPayment] = useState({ cardNumber: "", expiry: "", cvc: "", accepted: false });
+  const [completedOrder, setCompletedOrder] = useState(null);
 
   useEffect(() => {
     const details = user?.user_metadata;
@@ -44,6 +46,17 @@ export default function CartPage() {
     if (!checkout.fullName.trim() || !checkout.phone.trim() || !checkout.city.trim() || !checkout.address.trim()) {
       setBookingNotice(ru ? "Заполните имя, телефон, город и адрес доставки." : "Enter your name, phone number, city, and delivery address.");
       return;
+    }
+    if (checkout.paymentMethod !== "reservation" && !demoPayment.accepted) {
+      setBookingNotice(ru ? "Подтвердите, что это демонстрационная оплата без списания денег." : "Confirm that this is a demo payment and no money will be charged.");
+      return;
+    }
+    if (checkout.paymentMethod === "card_test") {
+      const digits = demoPayment.cardNumber.replace(/\D/g, "");
+      if (digits.length !== 16 || !/^\d{2}\/\d{2}$/.test(demoPayment.expiry) || !/^\d{3}$/.test(demoPayment.cvc)) {
+        setBookingNotice(ru ? "Для демонстрации карты заполните номер из 16 цифр, срок ММ/ГГ и трёхзначный CVC." : "For the demo card, enter a 16-digit number, MM/YY expiry, and a three-digit CVC.");
+        return;
+      }
     }
     setBooking(true);
     setBookingNotice("");
@@ -85,7 +98,7 @@ export default function CartPage() {
       postal_code: checkout.postalCode.trim() || null,
       delivery_method: checkout.deliveryMethod,
       payment_method: checkout.paymentMethod,
-      payment_status: checkout.paymentMethod === "reservation" ? "not_required" : "test_pending",
+      payment_status: checkout.paymentMethod === "reservation" ? "not_required" : "demo_approved",
       customer_notes: checkout.notes.trim() || null,
       })
       .select()
@@ -115,6 +128,7 @@ export default function CartPage() {
       setBooking(false);
       return;
     }
+    setCompletedOrder({ id: order.id, total: Number(total), paymentMethod: checkout.paymentMethod });
     clearCart();
     setCheckoutOpen(false);
     setBookingNotice(
@@ -150,6 +164,20 @@ export default function CartPage() {
         </div>
       )}
 
+      {completedOrder && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-lg rounded-[28px] bg-white p-6 text-center shadow-2xl sm:p-9">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#d7ff5f] text-3xl">✓</div>
+            <div className="mt-5 text-xs font-bold uppercase tracking-[0.2em] text-black/45">{ru ? "Демонстрационный заказ" : "Demo order"}</div>
+            <h2 className="mt-2 font-integral text-2xl font-bold sm:text-3xl">{ru ? "ЗАКАЗ ОФОРМЛЕН" : "ORDER PLACED"}</h2>
+            <p className="mt-3 text-black/55">{ru ? `Номер заказа: ${completedOrder.id.slice(0, 8)}` : `Order number: ${completedOrder.id.slice(0, 8)}`}</p>
+            <p className="mt-1 text-xl font-bold">{ru ? `${completedOrder.total.toLocaleString("ru-RU")} $` : `$${completedOrder.total.toLocaleString("en-US")}`}</p>
+            <p className="mt-4 rounded-2xl bg-[#f2f2f2] p-4 text-sm text-black/60">{ru ? "Это безопасная демонстрация: заказ записан в учебную базу, но деньги не списывались." : "This is a safe demo: the order was saved to the training database, but no money was charged."}</p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2"><Link href="/account" className="rounded-full bg-black px-6 py-3 font-semibold text-white">{ru ? "Посмотреть заказ" : "View order"}</Link><button onClick={()=>setCompletedOrder(null)} className="rounded-full border border-black/15 px-6 py-3 font-semibold">{ru ? "Продолжить покупки" : "Continue shopping"}</button></div>
+          </div>
+        </div>
+      )}
+
       {!items || items.length === 0 ? (
         <div className="border border-border rounded-[20px] p-6 text-center flex flex-col items-center">
           <p className="text-lg text-gray-600 mb-6">
@@ -177,7 +205,7 @@ export default function CartPage() {
 
           <div className="flex-1">
             <div className="sticky top-24">
-              {checkoutOpen && <div className="mb-5 rounded-[20px] border border-border bg-white p-5"><h2 className="text-xl font-bold">{ru ? "Данные для оформления" : "Checkout details"}</h2><p className="mt-1 text-sm text-black/50">{ru ? "Оплата работает в безопасном учебном режиме — деньги не списываются." : "Payment works in safe demo mode; no money will be charged."}</p><div className="mt-4 grid gap-3 sm:grid-cols-2">{[["fullName",ru?"Имя и фамилия":"Full name"],["phone",ru?"Телефон":"Phone"],["city",ru?"Город":"City"],["address",ru?"Адрес доставки":"Delivery address"],["postalCode",ru?"Индекс (необязательно)":"Postal code (optional)"]].map(([field,label])=><input key={field} value={checkout[field]} onChange={(e)=>setCheckout((value)=>({...value,[field]:e.target.value}))} placeholder={label} className={`rounded-2xl bg-[#f2f2f2] px-4 py-3 outline-none focus:ring-2 focus:ring-black ${field==="address"?"sm:col-span-2":""}`}/>)}<select aria-label={ru?"Способ доставки":"Delivery method"} value={checkout.deliveryMethod} onChange={(e)=>setCheckout((value)=>({...value,deliveryMethod:e.target.value}))} className="rounded-2xl bg-[#f2f2f2] px-4 py-3"><option value="courier">{ru?"Курьерская доставка":"Courier delivery"}</option><option value="pickup">{ru?"Пункт выдачи":"Pickup point"}</option></select><select aria-label={ru?"Способ оплаты":"Payment method"} value={checkout.paymentMethod} onChange={(e)=>setCheckout((value)=>({...value,paymentMethod:e.target.value}))} className="rounded-2xl bg-[#f2f2f2] px-4 py-3"><option value="reservation">{ru?"Бронирование без оплаты":"Reservation without payment"}</option><option value="card_test">{ru?"Банковская карта — тест":"Bank card — demo"}</option><option value="sbp_test">{ru?"СБП — тест":"Fast payment — demo"}</option></select><textarea value={checkout.notes} onChange={(e)=>setCheckout((value)=>({...value,notes:e.target.value}))} placeholder={ru?"Комментарий к заказу":"Order note"} rows="3" className="resize-none rounded-2xl bg-[#f2f2f2] px-4 py-3 sm:col-span-2"/></div></div>}
+              {checkoutOpen && <div className="mb-5 rounded-[20px] border border-border bg-white p-5"><h2 className="text-xl font-bold">{ru ? "Данные для оформления" : "Checkout details"}</h2><p className="mt-1 text-sm text-black/50">{ru ? "Оплата работает в безопасном учебном режиме — деньги не списываются." : "Payment works in safe demo mode; no money will be charged."}</p><div className="mt-4 grid gap-3 sm:grid-cols-2">{[["fullName",ru?"Имя и фамилия":"Full name"],["phone",ru?"Телефон":"Phone"],["city",ru?"Город":"City"],["address",ru?"Адрес доставки":"Delivery address"],["postalCode",ru?"Индекс (необязательно)":"Postal code (optional)"]].map(([field,label])=><input key={field} value={checkout[field]} onChange={(e)=>setCheckout((value)=>({...value,[field]:e.target.value}))} placeholder={label} className={`rounded-2xl bg-[#f2f2f2] px-4 py-3 outline-none focus:ring-2 focus:ring-black ${field==="address"?"sm:col-span-2":""}`}/>)}<select aria-label={ru?"Способ доставки":"Delivery method"} value={checkout.deliveryMethod} onChange={(e)=>setCheckout((value)=>({...value,deliveryMethod:e.target.value}))} className="rounded-2xl bg-[#f2f2f2] px-4 py-3"><option value="courier">{ru?"Курьерская доставка":"Courier delivery"}</option><option value="pickup">{ru?"Пункт выдачи":"Pickup point"}</option></select><select aria-label={ru?"Способ оплаты":"Payment method"} value={checkout.paymentMethod} onChange={(e)=>setCheckout((value)=>({...value,paymentMethod:e.target.value}))} className="rounded-2xl bg-[#f2f2f2] px-4 py-3"><option value="reservation">{ru?"Бронирование без оплаты":"Reservation without payment"}</option><option value="card_test">{ru?"Банковская карта — тест":"Bank card — demo"}</option><option value="sbp_test">{ru?"СБП — тест":"Fast payment — demo"}</option></select><textarea value={checkout.notes} onChange={(e)=>setCheckout((value)=>({...value,notes:e.target.value}))} placeholder={ru?"Комментарий к заказу":"Order note"} rows="3" className="resize-none rounded-2xl bg-[#f2f2f2] px-4 py-3 sm:col-span-2"/></div>{checkout.paymentMethod==="card_test"&&<div className="mt-4 rounded-2xl border border-dashed border-black/20 p-4"><div className="font-bold">{ru?"Демонстрационная карта":"Demo card"}</div><p className="mt-1 text-xs text-black/45">{ru?"Введите любые тестовые данные. Они не сохраняются и никуда не отправляются.":"Enter any test details. They are not stored or sent anywhere."}</p><div className="mt-3 grid gap-3 sm:grid-cols-2"><input inputMode="numeric" maxLength="19" value={demoPayment.cardNumber} onChange={(e)=>setDemoPayment((value)=>({...value,cardNumber:e.target.value.replace(/[^\d ]/g,"")}))} placeholder={ru?"Номер карты — 16 цифр":"Card number — 16 digits"} className="rounded-2xl bg-[#f2f2f2] px-4 py-3 sm:col-span-2"/><input maxLength="5" value={demoPayment.expiry} onChange={(e)=>setDemoPayment((value)=>({...value,expiry:e.target.value}))} placeholder={ru?"ММ/ГГ":"MM/YY"} className="rounded-2xl bg-[#f2f2f2] px-4 py-3"/><input inputMode="numeric" maxLength="3" value={demoPayment.cvc} onChange={(e)=>setDemoPayment((value)=>({...value,cvc:e.target.value.replace(/\D/g,"")}))} placeholder="CVC" className="rounded-2xl bg-[#f2f2f2] px-4 py-3"/></div></div>}{checkout.paymentMethod!=="reservation"&&<label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl bg-amber-50 p-4 text-sm"><input type="checkbox" checked={demoPayment.accepted} onChange={(e)=>setDemoPayment((value)=>({...value,accepted:e.target.checked}))} className="mt-1 h-4 w-4"/><span>{ru?"Я понимаю, что это демонстрационная оплата: реальные деньги не списываются, а платёжные данные не сохраняются.":"I understand this is a demo payment: no real money is charged and payment details are not stored."}</span></label>}</div>}
               <OrderSummary onCheckout={reserveOrder} booking={booking} />
             </div>
           </div>
