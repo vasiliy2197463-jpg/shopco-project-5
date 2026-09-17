@@ -63,6 +63,26 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
     onFilterChange({ ...filters, priceRange: value });
   };
 
+  const resetFilters = () => {
+    onFilterChange({
+      selectedCategory: null,
+      priceRange: [0, maxPrice],
+      selectedColors: [],
+      selectedSizes: [],
+      selectedStyle: null,
+      sortBy: filters.sortBy || 'popular'
+    });
+  };
+
+  const hasActiveFilters = Boolean(
+    filters.selectedCategory ||
+    filters.selectedStyle ||
+    filters.selectedColors?.length ||
+    filters.selectedSizes?.length ||
+    filters.priceRange?.[0] > 0 ||
+    filters.priceRange?.[1] < maxPrice
+  );
+
   const sidebarContent = (
     <div className="w-full flex flex-col gap-6">
       <div className="flex items-center justify-between pb-5 border-b border-border">
@@ -161,6 +181,11 @@ export default function FilterSidebar({ filters, onFilterChange, isOpen, onClose
         )}
       </div>
 
+      {hasActiveFilters && (
+        <button type="button" onClick={resetFilters} className="w-full rounded-full border border-black/15 px-5 py-3 font-semibold transition-colors hover:bg-black hover:text-white">
+          {ru ? 'Сбросить фильтры' : 'Clear filters'}
+        </button>
+      )}
       <Button variant="primary" className="w-full mt-2" onClick={onClose}>{ru ? 'Применить фильтр' : 'Apply Filter'}</Button>
     </div>
   );
