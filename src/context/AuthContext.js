@@ -59,7 +59,8 @@ export function AuthProvider({ children }) {
   const signIn = (email, password) => supabase.auth.signInWithPassword({ email, password });
   const signInWithGoogle = () => supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ""}/account/` } });
   const signOut = () => supabase.auth.signOut();
-  const resetPassword = (email) => supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ""}/account/` });
+  const resetPassword = (email) => supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ""}/signup/?mode=recovery` });
+  const updatePassword = (password) => supabase.auth.updateUser({ password });
   const updateCustomerDetails = async (details) => {
     const { data, error } = await supabase.auth.updateUser({ data: details });
     if (!error) setUser(data.user);
@@ -69,7 +70,7 @@ export function AuthProvider({ children }) {
   const isAdmin = profile?.role === "admin";
   const isOwnerAdmin = isAdmin && user?.email?.toLowerCase() === OWNER_ADMIN_EMAIL;
 
-  return <AuthContext.Provider value={{ user, profile, isAdmin, isOwnerAdmin, loading: (loading || profileLoading) && !loadingTimedOut, configured: Boolean(supabase), signUp, signIn, signInWithGoogle, signOut, resetPassword, updateCustomerDetails }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, profile, isAdmin, isOwnerAdmin, loading: (loading || profileLoading) && !loadingTimedOut, configured: Boolean(supabase), signUp, signIn, signInWithGoogle, signOut, resetPassword, updatePassword, updateCustomerDetails }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
