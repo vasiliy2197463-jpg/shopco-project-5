@@ -1,7 +1,10 @@
 'use client';
 import React from 'react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Pagination({ currentPage = 1, totalPages = 1, onPageChange }) {
+  const { language } = useLanguage();
+  const ru = language === 'ru';
   if (totalPages <= 1) return null;
 
   const getPageNumbers = () => {
@@ -29,10 +32,10 @@ export default function Pagination({ currentPage = 1, totalPages = 1, onPageChan
         disabled={currentPage === 1}
         className="flex items-center gap-2 border border-border rounded-pill px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        ← Previous
+        <span aria-hidden="true">←</span><span className="hidden xs:inline">{ru ? 'Назад' : 'Previous'}</span>
       </button>
       
-      <div className="flex items-center gap-1 md:gap-2">
+      <div className="hidden items-center gap-1 sm:flex md:gap-2">
         {getPageNumbers().map((page, idx) => (
           <button
             key={idx}
@@ -45,13 +48,16 @@ export default function Pagination({ currentPage = 1, totalPages = 1, onPageChan
           </button>
         ))}
       </div>
+      <div className="text-sm font-medium text-black/55 sm:hidden">
+        {ru ? `Страница ${currentPage} из ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
+      </div>
 
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         className="flex items-center gap-2 border border-border rounded-pill px-4 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Next →
+        <span className="hidden xs:inline">{ru ? 'Далее' : 'Next'}</span><span aria-hidden="true">→</span>
       </button>
     </div>
   );
