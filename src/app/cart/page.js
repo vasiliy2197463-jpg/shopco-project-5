@@ -68,9 +68,12 @@ export default function CartPage() {
       setBooking(false);
       return;
     }
-    const unavailableItems = items.filter((item) => {
-      const product = liveProducts.find((candidate) => candidate.name.toLowerCase() === String(item.name || "").toLowerCase())
-        || liveProducts.find((candidate) => String(candidate.id) === String(item.id));
+    const resolvedItems = items.map((item) => ({
+      item,
+      product: liveProducts.find((candidate) => candidate.name.toLowerCase() === String(item.name || "").toLowerCase())
+        || liveProducts.find((candidate) => String(candidate.id) === String(item.id)),
+    }));
+    const unavailableItems = resolvedItems.filter(({ item, product }) => {
       return !product
         || product.active === false
         || product.archived === true
@@ -81,58 +84,32 @@ export default function CartPage() {
       setBooking(false);
       return;
     }
-    const { data: order, error } = await supabase
-      .from("orders")
-      .insert({
-        user_id: user.id,
-        customer_email: user.email,
-        status: "new",
-        subtotal: Number(subtotal),
-        discount: Number(discountAmount),
-        delivery_fee: Number(deliveryFee),
-      total: Number(total),
-      customer_name: checkout.fullName.trim(),
-      customer_phone: checkout.phone.trim(),
-      city: checkout.city.trim(),
-      shipping_address: checkout.address.trim(),
-      postal_code: checkout.postalCode.trim() || null,
-      delivery_method: checkout.deliveryMethod,
-      payment_method: checkout.paymentMethod,
-      payment_status: checkout.paymentMethod === "reservation" ? "not_required" : "demo_approved",
-      customer_notes: checkout.notes.trim() || null,
-      })
-      .select()
-      .single();
+    const checkoutItems = resolvedItems.map(({ item, product }) => ({ product_id: product.id, color: item.color || null, size: item.size || null, quantity: Number(item.quantity) }));
+    const { data: orderId, error } = await supabase.rpc("create_demo_order", {
+      p_customer_email: user.email,
+      p_customer_name: checkout.fullName.trim(),
+      p_customer_phone: checkout.phone.trim(),
+      p_city: checkout.city.trim(),
+      p_shipping_address: checkout.address.trim(),
+      p_postal_code: checkout.postalCode.trim(),
+      p_delivery_method: checkout.deliveryMethod,
+      p_payment_method: checkout.paymentMethod,
+      p_payment_status: checkout.paymentMethod === "reservation" ? "not_required" : "demo_approved",
+      p_customer_notes: checkout.notes.trim(),
+      p_discount: Number(discountAmount),
+      p_delivery_fee: Number(deliveryFee),
+      p_items: checkoutItems,
+    });
     if (error) {
       setBookingNotice(`${ru ? "Не удалось создать заказ" : "Could not create the order"}: ${error.message}`);
       setBooking(false);
       return;
     }
-    const orderItems = items.map((item) => ({
-      order_id: order.id,
-      product_id: Number(item.id),
-      product_name: item.name,
-      color: item.color || null,
-      size: item.size || null,
-      quantity: Number(item.quantity),
-      unit_price: Number(item.price),
-    }));
-    const { error: itemsError } = await supabase
-      .from("order_items")
-      .insert(orderItems);
-    if (itemsError) {
-      await supabase.from("orders").delete().eq("id", order.id);
-      setBookingNotice(
-        `${ru ? "Не удалось сохранить состав заказа" : "Could not save the order contents"}: ${itemsError.message}`,
-      );
-      setBooking(false);
-      return;
-    }
-    setCompletedOrder({ id: order.id, total: Number(total), paymentMethod: checkout.paymentMethod });
+    setCompletedOrder({ id: orderId, total: Number(total), paymentMethod: checkout.paymentMethod });
     clearCart();
     setCheckoutOpen(false);
     setBookingNotice(
-      ru ? `Заказ №${order.id} забронирован. Администратор уже увидит его в панели.` : `Order #${order.id} has been reserved. The administrator can now see it in the dashboard.`,
+      ru ? `Заказ №${orderId} забронирован. Администратор уже увидит его в панели.` : `Order #${orderId} has been reserved. The administrator can now see it in the dashboard.`,
     );
     setBooking(false);
   };
