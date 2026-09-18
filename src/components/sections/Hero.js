@@ -41,8 +41,16 @@ export default function Hero() {
           </div>
           
           <div className="flex-1 relative min-h-[350px] sm:min-h-[450px] md:min-h-[500px] lg:min-h-[600px] flex items-end justify-center lg:justify-end overflow-hidden">
-            <div className="absolute right-10 top-14 z-20 h-10 w-10 rotate-45 bg-black lg:right-16 lg:top-24 lg:h-16 lg:w-16" />
-            <div className="absolute left-6 top-1/3 z-20 h-6 w-6 rotate-45 bg-black lg:left-10 lg:top-1/2 lg:h-9 lg:w-9" />
+            <div className="absolute right-10 top-14 z-20 h-14 w-14 animate-pulse lg:right-16 lg:top-24 lg:h-[88px] lg:w-[88px]">
+              <svg viewBox="-2 -2 104 104" aria-hidden="true" className="h-full w-full">
+                <path d="M50 0C53 32 68 47 100 50C68 53 53 68 50 100C47 68 32 53 0 50C32 47 47 32 50 0Z" fill="black" />
+              </svg>
+            </div>
+            <div className="absolute left-6 top-1/3 z-20 h-9 w-9 animate-pulse lg:left-10 lg:top-1/2 lg:h-14 lg:w-14">
+              <svg viewBox="-2 -2 104 104" aria-hidden="true" className="h-full w-full">
+                <path d="M50 0C53 32 68 47 100 50C68 53 53 68 50 100C47 68 32 53 0 50C32 47 47 32 50 0Z" fill="black" />
+              </svg>
+            </div>
             <Image 
               src="/images/hero/hero-banner.png" 
               alt="Luchik, Kuzya and Vitalik in tailored suits" 

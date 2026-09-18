@@ -207,10 +207,29 @@ export const products = [
     rating: 4.5,
     reviewCount: 65,
     availableColors: [
-      { name: "Green", hex: "#00C12B" },
-      { name: "Black", hex: "#000000", image: "/images/products/variants/product-10-black.png" },
-      { name: "White", hex: "#FFFFFF", image: "/images/products/variants/product-10-white.png" },
-      { name: "Yellow", hex: "#F5DD06", image: "/images/products/variants/product-10-yellow.png" }
+      {
+        name: "Green",
+        hex: "#00C12B",
+        images: ["/images/products/product-10.png", "/images/products/product-10-back.png", "/images/products/product-10-model.png"]
+      },
+      {
+        name: "Black",
+        hex: "#000000",
+        image: "/images/products/variants/product-10-black.png",
+        images: ["/images/products/variants/product-10-black.png", "/images/products/models/product-10-black-back.png", "/images/products/models/product-10-black-front.png"]
+      },
+      {
+        name: "White",
+        hex: "#FFFFFF",
+        image: "/images/products/variants/product-10-white.png",
+        images: ["/images/products/variants/product-10-white.png", "/images/products/models/product-10-white-back.png", "/images/products/models/product-10-white-front.png"]
+      },
+      {
+        name: "Yellow",
+        hex: "#F5DD06",
+        image: "/images/products/variants/product-10-yellow.png",
+        images: ["/images/products/variants/product-10-yellow.png", "/images/products/models/product-10-yellow-back.png", "/images/products/models/product-10-yellow-front.png"]
+      }
     ],
     availableSizes: ["Small", "Medium", "Large", "X-Large"],
     stock: 45,

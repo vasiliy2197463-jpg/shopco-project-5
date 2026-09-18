@@ -31,7 +31,7 @@ function ItemContent() {
   if (loading) return <main className="container-main min-h-[50vh] py-20 text-center">{ru ? "Загрузка товара…" : "Loading product…"}</main>;
   if (!product) return <main className="container-main min-h-[50vh] py-20 text-center"><h1 className="font-integral text-3xl font-bold">{ru ? "Товар недоступен" : "PRODUCT UNAVAILABLE"}</h1><p className="mt-3 text-black/50">{ru ? "Возможно, он снят с публикации." : "It may have been removed from the catalog."}</p></main>;
 
-  const galleryImages = product.images?.length ? [selectedColor?.image || product.images[0], ...product.images.slice(1)] : [];
+  const galleryImages = product.images?.length ? selectedColor?.images || (selectedColor?.image ? [selectedColor.image] : product.images) : [];
   const relatedProducts = products.filter((item) => item.id !== product.id).slice(0, 4);
   const displayedProduct = reviewSummary ? { ...product, rating: reviewSummary.rating, reviewCount: reviewSummary.count } : product;
 

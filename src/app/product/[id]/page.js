@@ -17,7 +17,7 @@ export default function ProductPage({ params }) {
   const product = getProductById(id) || products[0]; // fallback to first product if not found
   const [selectedColor, setSelectedColor] = useState(product.availableColors?.[0] || null);
   const galleryImages = product?.images?.length
-    ? [selectedColor?.image || product.images[0], ...product.images.slice(1)]
+    ? selectedColor?.images || (selectedColor?.image ? [selectedColor.image] : product.images)
     : [];
   
   const breadcrumbItems = [
