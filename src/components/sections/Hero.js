@@ -52,7 +52,7 @@ export default function Hero() {
               </svg>
             </div>
             <Image 
-              src="/images/hero/hero-banner.png" 
+              src="/images/hero/hero-cats-transparent-v2.png" 
               alt="Luchik, Kuzya and Vitalik in tailored suits" 
               width={600}
               height={600}

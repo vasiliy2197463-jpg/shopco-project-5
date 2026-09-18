@@ -210,7 +210,7 @@ export const products = [
       {
         name: "Green",
         hex: "#00C12B",
-        images: ["/images/products/product-10.png", "/images/products/product-10-back.png", "/images/products/product-10-model.png"]
+        images: ["/images/products/product-10.png", "/images/products/product-10-back-luchik.png", "/images/products/product-10-model.png"]
       },
       {
         name: "Black",
@@ -233,7 +233,7 @@ export const products = [
     ],
     availableSizes: ["Small", "Medium", "Large", "X-Large"],
     stock: 45,
-    images: [`/images/products/product-${10}.png`, `/images/products/product-${10}-back.png`, `/images/products/product-${10}-model.png`],
+    images: ["/images/products/product-10.png", "/images/products/product-10-back-luchik.png", "/images/products/product-10-model.png"],
     dressStyle: "Casual"
   },
   {
@@ -255,7 +255,7 @@ export const products = [
     ],
     availableSizes: ["Small", "Medium", "Large", "X-Large"],
     stock: 85,
-    images: [`/images/products/product-${11}.png`, `/images/products/product-${11}-back.png`, `/images/products/product-${11}-model.png`],
+    images: ["/images/products/product-11.png", "/images/products/product-11-back-kuzya.png", "/images/products/product-11-model.png"],
     dressStyle: "Casual"
   },
   {
