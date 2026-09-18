@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
@@ -125,6 +125,7 @@ export default function Navbar() {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [notifications, setNotifications] = useState([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationsRef = useRef(null);
 
   const { items } = useCart();
   const cartCount =
@@ -199,6 +200,28 @@ export default function Navbar() {
   };
 
   const unreadCount = notifications.filter((item) => item.sender !== "customer" && !item.is_read).length;
+
+  useEffect(() => {
+    if (!notificationsOpen) return;
+
+    const closeOnOutsideClick = async (event) => {
+      if (notificationsRef.current?.contains(event.target)) return;
+      setNotificationsOpen(false);
+      if (user && supabase && notifications.some((item) => !item.is_read)) {
+        await supabase
+          .from("order_notifications")
+          .update({ is_read: true })
+          .eq("user_id", user.id)
+          .eq("is_read", false);
+        setNotifications((current) =>
+          current.map((item) => ({ ...item, is_read: true })),
+        );
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [notificationsOpen, notifications, supabase, user]);
 
   return (
     <nav
@@ -408,7 +431,7 @@ export default function Navbar() {
           </Link>
 
           {user && (
-            <div className="relative hidden h-10 w-10 items-center justify-center lg:flex">
+            <div ref={notificationsRef} className="relative hidden h-10 w-10 items-center justify-center lg:flex">
               <button
                 onClick={openNotifications}
                 className="relative inline-flex h-10 w-10 items-center justify-center text-black hover:text-gray-600"
