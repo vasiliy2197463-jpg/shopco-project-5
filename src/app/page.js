@@ -6,7 +6,7 @@ import DressStyle from '@/components/sections/DressStyle';
 import HappyCustomers from '@/components/sections/HappyCustomers';
 
 export const metadata = {
-  title: 'SHOP.CO - Find Clothes That Matches Your Style',
+  title: 'LUCHIK.CO - Find Clothes That Matches Your Style',
   description: 'Browse through our diverse range of meticulously crafted garments, designed to bring out your individuality and cater to your sense of style.',
 };
 

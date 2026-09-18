@@ -41,19 +41,11 @@ export default function Hero() {
           </div>
           
           <div className="flex-1 relative min-h-[350px] sm:min-h-[450px] md:min-h-[500px] lg:min-h-[600px] flex items-end justify-center lg:justify-end overflow-hidden">
-            <div className="absolute top-10 right-8 lg:top-24 lg:right-16 w-14 h-14 lg:w-[104px] lg:h-[104px] animate-pulse">
-              <svg viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M52 0L63.5358 38.4642L102 50L63.5358 61.5358L52 100L40.4642 61.5358L2 50L40.4642 38.4642L52 0Z" fill="black"/>
-              </svg>
-            </div>
-            <div className="absolute top-1/3 left-4 lg:top-1/2 lg:left-10 w-9 h-9 lg:w-14 lg:h-14 animate-pulse">
-              <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M28 0L34.2114 20.7886L55 27L34.2114 33.2114L28 54L21.7886 33.2114L1 27L21.7886 20.7886L28 0Z" fill="black"/>
-              </svg>
-            </div>
+            <div className="absolute right-10 top-14 z-20 h-10 w-10 rotate-45 bg-black lg:right-16 lg:top-24 lg:h-16 lg:w-16" />
+            <div className="absolute left-6 top-1/3 z-20 h-6 w-6 rotate-45 bg-black lg:left-10 lg:top-1/2 lg:h-9 lg:w-9" />
             <Image 
               src="/images/hero/hero-banner.png" 
-              alt="Fashion models" 
+              alt="Luchik, Kuzya and Vitalik in tailored suits" 
               width={600}
               height={600}
               className="object-contain w-full max-w-[500px] lg:max-w-none h-auto z-10"

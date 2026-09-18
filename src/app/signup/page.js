@@ -44,7 +44,7 @@ export default function SignupPage() {
     <main className="container-main py-12 md:py-20">
       <div className="mx-auto max-w-md rounded-[32px] border border-black/10 bg-white p-6 shadow-xl md:p-9">
         <h1 className="font-integral text-3xl font-bold">{mode === "recovery" ? (ru ? "НОВЫЙ ПАРОЛЬ" : "NEW PASSWORD") : mode === "signup" ? (ru ? "СОЗДАТЬ АККАУНТ" : "CREATE ACCOUNT") : (ru ? "ВОЙТИ" : "SIGN IN")}</h1>
-        <p className="mt-2 text-black/50">{mode === "recovery" ? (ru ? "Придумайте новый пароль для своего аккаунта." : "Choose a new password for your account.") : mode === "signup" ? (ru ? "Создайте аккаунт, чтобы отслеживать заказы и сохранять корзину." : "Create an account to track orders and save your cart.") : (ru ? "С возвращением в SHOP.CO." : "Welcome back to SHOP.CO.")}</p>
+        <p className="mt-2 text-black/50">{mode === "recovery" ? (ru ? "Придумайте новый пароль для своего аккаунта." : "Choose a new password for your account.") : mode === "signup" ? (ru ? "Создайте аккаунт, чтобы отслеживать заказы и сохранять корзину." : "Create an account to track orders and save your cart.") : (ru ? "С возвращением в LUCHIK.CO." : "Welcome back to LUCHIK.CO.")}</p>
         {!configured && <div className="mt-5 rounded-2xl bg-amber-50 p-4 text-sm">{ru ? "Supabase не настроен." : "Supabase is not configured."}</div>}
         <form onSubmit={submit} className="mt-7 space-y-4">
           {mode === "signup" && <input required placeholder={ru ? "Имя и фамилия" : "Full name"} value={form.name} onChange={(e)=>setForm({...form,name:e.target.value})} className="w-full rounded-full bg-[#f2f2f2] px-5 py-3.5" />}
@@ -56,7 +56,7 @@ export default function SignupPage() {
         </form>
         {mode !== "recovery" && <button disabled className="mt-3 w-full rounded-full border border-black/15 py-3.5 font-semibold opacity-40">{ru ? "Вход через Google — скоро" : "Google sign-in — coming soon"}</button>}
         {mode === "signin" && <button onClick={recover} className="mt-4 w-full text-sm underline">{ru ? "Забыли пароль?" : "Forgot password?"}</button>}
-        {mode === "recovery" ? <button onClick={()=>router.push("/account")} className="mt-5 w-full text-sm text-black/60 underline">{ru ? "Перейти в личный кабинет" : "Open my account"}</button> : <button onClick={()=>{setMode(mode === "signup" ? "signin" : "signup");setMessage("");setMessageError(false);}} className="mt-5 w-full text-sm text-black/60 underline">{mode === "signup" ? (ru ? "Уже есть аккаунт? Войти" : "Already have an account? Sign in") : (ru ? "Впервые в SHOP.CO? Создать аккаунт" : "New to SHOP.CO? Create account")}</button>}
+        {mode === "recovery" ? <button onClick={()=>router.push("/account")} className="mt-5 w-full text-sm text-black/60 underline">{ru ? "Перейти в личный кабинет" : "Open my account"}</button> : <button onClick={()=>{setMode(mode === "signup" ? "signin" : "signup");setMessage("");setMessageError(false);}} className="mt-5 w-full text-sm text-black/60 underline">{mode === "signup" ? (ru ? "Уже есть аккаунт? Войти" : "Already have an account? Sign in") : (ru ? "Впервые в LUCHIK.CO? Создать аккаунт" : "New to LUCHIK.CO? Create account")}</button>}
       </div>
     </main>
   );

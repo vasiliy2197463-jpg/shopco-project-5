@@ -39,7 +39,7 @@ const RU = {
   "OUR HAPPY CUSTOMERS": "ОТЗЫВЫ НАШИХ ПОКУПАТЕЛЕЙ", "Available colors": "Доступные цвета", "Product quantity": "Количество товара",
   "Posted on": "Опубликовано", "Size:": "Размер:", "Color:": "Цвет:",
   "We have clothes that suits your style and which you're proud to wear. From women to men.": "Мы собрали одежду, которая подходит вашему стилю и которую приятно носить — для женщин и мужчин.",
-  "Shop.co © 2000-2023, All Rights Reserved": "Shop.co © 2000–2026. Все права защищены",
+  "Luchik.co © 2000-2023, All Rights Reserved": "Luchik.co © 2000–2026. Все права защищены",
   "Gradient Graphic T-shirt": "Футболка с градиентным принтом", "Polo with Tipping Details": "Поло с контрастной отделкой",
   "T-shirt with Tape Details": "Футболка с декоративными лентами", "Skinny Fit Jeans": "Зауженные джинсы",
   "Checkered Shirt": "Рубашка в клетку", "Sleeve Striped T-shirt": "Футболка с полосатыми рукавами",
@@ -63,11 +63,11 @@ const RU = {
   "Casual Style": "Повседневный стиль", "Formal Style": "Деловой стиль", "Party Style": "Стиль для вечеринки", "Gym Style": "Спортивный стиль",
   "Featured brands": "Популярные бренды", "August 14, 2023": "14 августа 2023", "August 15, 2023": "15 августа 2023",
   "August 16, 2023": "16 августа 2023", "August 17, 2023": "17 августа 2023", "August 18, 2023": "18 августа 2023",
-  "I'm blown away by the quality and style of the clothes I received from Shop.co. From casual wear to elegant dresses, every piece I've bought has exceeded my expectations.": "Я в восторге от качества и стиля одежды Shop.co. Каждая покупка — от повседневных вещей до элегантных платьев — превзошла мои ожидания.",
-  "Finding clothes that align with my personal style used to be a challenge until I discovered Shop.co. The range of options they offer is truly remarkable, catering to a variety of tastes and occasions.": "Раньше мне было трудно находить одежду под свой стиль, пока я не открыл Shop.co. Здесь действительно впечатляющий выбор для разных вкусов и случаев.",
-  "As someone who's always on the lookout for unique fashion pieces, I'm thrilled to have stumbled upon Shop.co. The selection of clothes is not only diverse but also on-point with the latest trends.": "Я всегда ищу необычные модные вещи и рад, что нашёл Shop.co. Ассортимент здесь разнообразный и точно соответствует современным трендам.",
-  "As a frequent online shopper, I've seen it all. But Shop.co manages to surprise me every time. The website navigation is seamless, and their delivery is incredibly fast. Plus, the fits are always perfect!": "Я часто покупаю в интернете, но Shop.co каждый раз приятно удивляет. Сайт удобный, доставка быстрая, а вещи всегда отлично сидят.",
-  "I've been shopping at Shop.co for months, and they never disappoint. The quality of fabric is top-notch, and they keep adding trendy pieces. Highly recommend!": "Я покупаю в Shop.co уже несколько месяцев и ни разу не разочаровался. Ткани отличного качества, а модные новинки появляются регулярно. Рекомендую!"
+  "I'm blown away by the quality and style of the clothes I received from Luchik.co. From casual wear to elegant dresses, every piece I've bought has exceeded my expectations.": "Я в восторге от качества и стиля одежды Luchik.co. Каждая покупка — от повседневных вещей до элегантных платьев — превзошла мои ожидания.",
+  "Finding clothes that align with my personal style used to be a challenge until I discovered Luchik.co. The range of options they offer is truly remarkable, catering to a variety of tastes and occasions.": "Раньше мне было трудно находить одежду под свой стиль, пока я не открыл Luchik.co. Здесь действительно впечатляющий выбор для разных вкусов и случаев.",
+  "As someone who's always on the lookout for unique fashion pieces, I'm thrilled to have stumbled upon Luchik.co. The selection of clothes is not only diverse but also on-point with the latest trends.": "Я всегда ищу необычные модные вещи и рад, что нашёл Luchik.co. Ассортимент здесь разнообразный и точно соответствует современным трендам.",
+  "As a frequent online shopper, I've seen it all. But Luchik.co manages to surprise me every time. The website navigation is seamless, and their delivery is incredibly fast. Plus, the fits are always perfect!": "Я часто покупаю в интернете, но Luchik.co каждый раз приятно удивляет. Сайт удобный, доставка быстрая, а вещи всегда отлично сидят.",
+  "I've been shopping at Luchik.co for months, and they never disappoint. The quality of fabric is top-notch, and they keep adding trendy pieces. Highly recommend!": "Я покупаю в Luchik.co уже несколько месяцев и ни разу не разочаровался. Ткани отличного качества, а модные новинки появляются регулярно. Рекомендую!"
 };
 
 const PHRASES = [
@@ -94,13 +94,13 @@ function translateValue(value) {
   if (RU[trimmed]) return value.replace(trimmed, RU[trimmed]);
   const brandUpper = "\uE000";
   const brandTitle = "\uE001";
-  let result = value.replaceAll("SHOP.CO", brandUpper).replaceAll("Shop.co", brandTitle);
+  let result = value.replaceAll("LUCHIK.CO", brandUpper).replaceAll("Luchik.co", brandTitle);
   for (const [from, to] of PHRASES) result = result.replaceAll(from, to);
   for (const [from, to] of Object.entries(RU)) {
     result = result.replaceAll(from, to);
     result = result.replaceAll(from.toUpperCase(), to.toUpperCase());
   }
-  return result.replaceAll(brandUpper, "SHOP.CO").replaceAll(brandTitle, "Shop.co");
+  return result.replaceAll(brandUpper, "LUCHIK.CO").replaceAll(brandTitle, "Luchik.co");
 }
 
 function translateTree(root) {

@@ -28,7 +28,7 @@ export default function Footer() {
       <div className="mx-auto max-w-[1240px]">
         <div className="grid gap-10 border-b border-black/10 pb-12 sm:grid-cols-2 lg:grid-cols-[1.25fr_repeat(4,1fr)]">
           <div>
-            <h2 className="font-integral text-[30px] font-bold tracking-tight">SHOP.CO</h2>
+            <h2 className="font-integral text-[30px] font-bold tracking-tight">LUCHIK.CO</h2>
             <p className="mt-5 max-w-xs text-sm leading-6 text-black/55">{ru ? "Демонстрационный интернет-магазин одежды с каталогом, заказами и личным кабинетом." : "A demo fashion store with a catalog, orders, and customer accounts."}</p>
             <a href="https://github.com/vasiliy2197463-jpg/shopco-project-5" target="_blank" rel="noreferrer" className="mt-5 inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white transition-colors hover:bg-black hover:text-white" aria-label="GitHub"><FaGithub /></a>
           </div>
@@ -36,7 +36,7 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-5 pt-7 lg:flex-row lg:items-center lg:justify-between">
-          <div><p className="text-sm text-black/55">SHOP.CO © 2026. {ru ? "Учебная демонстрация." : "Training demo."}</p><p className="mt-1 text-xs text-black/35">{ru ? "Реальные платежи и доставка не подключены." : "Real payments and delivery are not connected."}</p></div>
+          <div><p className="text-sm text-black/55">LUCHIK.CO © 2026. {ru ? "Учебная демонстрация." : "Training demo."}</p><p className="mt-1 text-xs text-black/35">{ru ? "Реальные платежи и доставка не подключены." : "Real payments and delivery are not connected."}</p></div>
           <div className="flex flex-wrap gap-2">{["VISA", "Mastercard", "PayPal", "Apple Pay", "Google Pay"].map((name)=><span key={name} className="rounded-lg border border-black/5 bg-white px-3 py-2 text-xs font-bold shadow-sm">{name}</span>)}</div>
         </div>
       </div>

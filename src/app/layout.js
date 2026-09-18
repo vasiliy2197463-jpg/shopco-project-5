@@ -9,9 +9,9 @@ import { WishlistProvider } from "@/context/WishlistContext";
 import { CompareProvider } from "@/context/CompareContext";
 
 export const metadata = {
-  title: "SHOP.CO | Find Clothes That Matches Your Style",
+  title: "LUCHIK.CO | Find Clothes That Matches Your Style",
   description:
-    "Discover the latest fashion trends and high-quality clothing at SHOP.CO. Find clothes that match your style for every occasion.",
+    "Discover the latest fashion trends and high-quality clothing at LUCHIK.CO. Find clothes that match your style for every occasion.",
   icons: {
     icon: "/favicon.svg",
   },

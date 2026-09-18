@@ -403,7 +403,7 @@ export default function AdminPage() {
     await supabase.from("order_notifications").insert({
       user_id: item.user_id,
       sender: "admin",
-      message: `QUESTION_ANSWER:${product?.name || "SHOP.CO"}:${answer}`,
+      message: `QUESTION_ANSWER:${product?.name || "LUCHIK.CO"}:${answer}`,
       allow_reply: false,
     });
     setQuestions((current) =>
@@ -543,7 +543,7 @@ export default function AdminPage() {
       <header className="sticky top-0 z-50 border-b border-black/10 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-4 lg:px-10">
           <div>
-            <div className="font-integral text-2xl font-bold">SHOP.CO</div>
+            <div className="font-integral text-2xl font-bold">LUCHIK.CO</div>
             <div className="text-xs text-black/50">Панель управления</div>
           </div>
           <a

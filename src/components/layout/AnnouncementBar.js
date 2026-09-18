@@ -10,8 +10,8 @@ export default function AnnouncementBar() {
   const { language } = useLanguage();
 
   const copy = language === 'ru'
-    ? { message: 'Большая распродажа в SHOP.CO — скидки до 50% на избранные товары.', action: 'Перейти к покупкам' }
-    : { message: 'Big sale at SHOP.CO — save up to 50% on selected items.', action: 'Shop Now' };
+    ? { message: 'Большая распродажа в LUCHIK.CO — скидки до 50% на избранные товары.', action: 'Перейти к покупкам' }
+    : { message: 'Big sale at LUCHIK.CO — save up to 50% on selected items.', action: 'Shop Now' };
 
   if (!isVisible) return null;
 

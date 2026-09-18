@@ -242,7 +242,7 @@ export default function Navbar() {
           href="/"
           className="font-integral text-[24px] md:text-[32px] font-bold text-black tracking-tight ml-3 lg:ml-0 lg:mr-2 xl:mr-6 flex-shrink-0 flex items-center justify-center"
         >
-          SHOP.CO
+          LUCHIK.CO
         </Link>
 
         {/* Desktop Nav Links */}
@@ -584,7 +584,7 @@ export default function Navbar() {
       >
         <div className="p-4 flex items-center justify-between border-b border-[rgba(0,0,0,0.1)]">
           <span className="font-integral text-[24px] font-bold text-black tracking-tight">
-            SHOP.CO
+            LUCHIK.CO
           </span>
           <button
             onClick={() => setIsMenuOpen(false)}
