@@ -11,10 +11,29 @@ export const products = [
     rating: 3.5,
     reviewCount: 45,
     availableColors: [
-      { name: "White", hex: "#FFFFFF" },
-      { name: "Black", hex: "#000000", image: "/images/products/variants/product-1-black.png" },
-      { name: "Gray", hex: "#808080", image: "/images/products/variants/product-1-gray.png" },
-      { name: "Purple", hex: "#7D06F5", image: "/images/products/variants/product-1-purple.png" }
+      {
+        name: "White",
+        hex: "#FFFFFF",
+        images: ["/images/products/product-1.png", "/images/products/product-1-back.png", "/images/products/product-1-model.png"]
+      },
+      {
+        name: "Black",
+        hex: "#000000",
+        image: "/images/products/variants/product-1-black.png",
+        images: ["/images/products/variants/product-1-black.png", "/images/products/models/product-1-black-front.png"]
+      },
+      {
+        name: "Gray",
+        hex: "#808080",
+        image: "/images/products/variants/product-1-gray.png",
+        images: ["/images/products/variants/product-1-gray.png", "/images/products/models/product-1-gray-front.png"]
+      },
+      {
+        name: "Purple",
+        hex: "#7D06F5",
+        image: "/images/products/variants/product-1-purple.png",
+        images: ["/images/products/variants/product-1-purple.png", "/images/products/models/product-1-purple-front.png"]
+      }
     ],
     availableSizes: ["Small", "Medium", "Large", "X-Large"],
     stock: 100,
@@ -33,10 +52,29 @@ export const products = [
     rating: 4.5,
     reviewCount: 60,
     availableColors: [
-      { name: "Red", hex: "#F50606" },
-      { name: "Black", hex: "#000000", image: "/images/products/variants/product-2-black.png" },
-      { name: "White", hex: "#FFFFFF", image: "/images/products/variants/product-2-white.png" },
-      { name: "Green", hex: "#00C12B", image: "/images/products/variants/product-2-green.png" }
+      {
+        name: "Red",
+        hex: "#F50606",
+        images: ["/images/products/product-2.png", "/images/products/product-2-back.png", "/images/products/product-2-model.png"]
+      },
+      {
+        name: "Black",
+        hex: "#000000",
+        image: "/images/products/variants/product-2-black.png",
+        images: ["/images/products/variants/product-2-black.png", "/images/products/models/product-2-black-front.png"]
+      },
+      {
+        name: "White",
+        hex: "#FFFFFF",
+        image: "/images/products/variants/product-2-white.png",
+        images: ["/images/products/variants/product-2-white.png", "/images/products/models/product-2-white-front.png"]
+      },
+      {
+        name: "Green",
+        hex: "#00C12B",
+        image: "/images/products/variants/product-2-green.png",
+        images: ["/images/products/variants/product-2-green.png", "/images/products/models/product-2-green-front.png"]
+      }
     ],
     availableSizes: ["Small", "Medium", "Large", "X-Large"],
     stock: 80,
