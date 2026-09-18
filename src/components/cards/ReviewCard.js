@@ -16,7 +16,7 @@ export default function ReviewCard({ review }) {
         )}
       </div>
       <p className="text-gray-600 text-sm md:text-base mb-4 flex-grow">
-        "{review.text || review.content}"
+        “{review.text || review.content}”
       </p>
       <p className="text-gray-500 text-sm mt-auto">
         {language === 'ru' ? 'Опубликовано' : 'Posted on'} {review.date}

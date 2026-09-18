@@ -42,10 +42,9 @@ export default function ProductInfo({
   ); // Default 'Large'
   const [quantity, setQuantity] = useState(1);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+  const [added, setAdded] = useState(false);
 
   if (!product) return null;
-
-  const [added, setAdded] = useState(false);
 
   const handleAddToCart = () => {
     addToCart({

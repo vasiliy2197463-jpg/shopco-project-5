@@ -15,7 +15,7 @@ export default function CategoryPage() {
   const params = useParams();
   const slug = params?.slug || 'all';
   const displayCategory = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
-  const localizedCategory = ru ? ({ all: 'Все товары', 't-shirts': 'Футболки', shorts: 'Шорты', shirts: 'Рубашки', hoodie: 'Толстовки', jeans: 'Джинсы', casual: 'Повседневный стиль', formal: 'Деловой стиль', party: 'Для вечеринки', gym: 'Спортивный стиль' }[slug.toLowerCase()] || displayCategory) : displayCategory;
+  const localizedCategory = ru ? ({ all: 'Все товары', 'new-arrivals': 'Новинки', 'on-sale': 'Распродажа', 't-shirts': 'Футболки', shorts: 'Шорты', shirts: 'Рубашки', hoodie: 'Толстовки', jeans: 'Джинсы', casual: 'Повседневный стиль', formal: 'Деловой стиль', party: 'Для вечеринки', gym: 'Спортивный стиль' }[slug.toLowerCase()] || displayCategory) : displayCategory;
   const categoryBySlug = {
     't-shirts': 't-shirts',
     shorts: 'shorts',
@@ -31,8 +31,9 @@ export default function CategoryPage() {
 
   const stylesList = ['casual', 'formal', 'party', 'gym'];
   const isStyleSlug = stylesList.includes(slug.toLowerCase());
+  const isSpecialCollection = ['new-arrivals', 'on-sale'].includes(slug.toLowerCase());
   
-  const initialCategory = !isStyleSlug && slug !== 'all' ? (categoryBySlug[slug.toLowerCase()] || slug) : null;
+  const initialCategory = !isStyleSlug && !isSpecialCollection && slug !== 'all' ? (categoryBySlug[slug.toLowerCase()] || slug) : null;
   const initialStyle = isStyleSlug ? displayCategory : null;
 
   const [filters, setFilters] = useState({
@@ -49,7 +50,7 @@ export default function CategoryPage() {
     const isStyle = stylesList.includes(slug.toLowerCase());
     setFilters(prev => ({
       ...prev,
-      selectedCategory: !isStyle && slug !== 'all' ? (categoryBySlug[slug.toLowerCase()] || slug) : null,
+      selectedCategory: !isStyle && !['all', 'new-arrivals', 'on-sale'].includes(slug.toLowerCase()) ? (categoryBySlug[slug.toLowerCase()] || slug) : null,
       selectedStyle: isStyle ? displayCategory : null
     }));
   }, [slug, displayCategory]);
@@ -70,6 +71,13 @@ export default function CategoryPage() {
 
   useEffect(() => {
     let result = [...(allProducts || [])];
+
+    if (slug.toLowerCase() === 'on-sale') {
+      result = result.filter((product) => Number(product.originalPrice || 0) > Number(product.price || 0));
+    } else if (slug.toLowerCase() === 'new-arrivals') {
+      const newestIds = new Set([...result].sort((a, b) => Number(b.id) - Number(a.id)).slice(0, 8).map((product) => product.id));
+      result = result.filter((product) => newestIds.has(product.id));
+    }
 
     // Filter by Category
     if (filters.selectedCategory && filters.selectedCategory.toLowerCase() !== 'all') {
@@ -137,7 +145,7 @@ export default function CategoryPage() {
 
     setFilteredProducts(result);
     setCurrentPage(1); 
-  }, [filters, allProducts]);
+  }, [filters, allProducts, slug]);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
