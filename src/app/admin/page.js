@@ -498,6 +498,16 @@ export default function AdminPage() {
   const newOrders = orders.filter(
     (order) => order.status === "new" || order.status === "pending",
   ).length;
+  const nonCancelledOrders = orders.filter((order) => order.status !== "cancelled");
+  const demoTurnover = nonCancelledOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+  const completedTurnover = orders.filter((order) => order.status === "completed").reduce((sum, order) => sum + Number(order.total || 0), 0);
+  const averageOrder = nonCancelledOrders.length ? demoTurnover / nonCancelledOrders.length : 0;
+  const orderStatusSummary = [
+    ["Новые", orders.filter((order) => ["new", "pending"].includes(order.status)).length, "bg-[#d7ff5f]"],
+    ["В работе", orders.filter((order) => order.status === "processing").length, "bg-blue-100"],
+    ["Завершённые", orders.filter((order) => order.status === "completed").length, "bg-green-100"],
+    ["Отменённые", orders.filter((order) => order.status === "cancelled").length, "bg-red-100"],
+  ];
   const filteredOrders = orders.filter((order) =>
     orderFilter === "new"
       ? ["new", "pending"].includes(order.status)
@@ -598,6 +608,10 @@ export default function AdminPage() {
                     products.reduce((s, p) => s + Number(p.stock || 0), 0),
                   ],
                   ["Заказов", orders.length],
+                  ["Новых заказов", newOrders],
+                  ["Демо-оборот", `$${demoTurnover.toLocaleString("en-US")}`],
+                  ["Средний чек", `$${Math.round(averageOrder).toLocaleString("en-US")}`],
+                  ["Завершённый оборот", `$${completedTurnover.toLocaleString("en-US")}`],
                   ["Подписчиков", subscribers.filter((item) => item.active !== false).length],
                   [
                     "Стоимость запасов",
@@ -613,6 +627,7 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
+              <div className="mt-6 rounded-3xl bg-white p-5 shadow-sm sm:p-6"><div className="flex flex-wrap items-end justify-between gap-2"><div><h2 className="text-xl font-bold">Состояние заказов</h2><p className="mt-1 text-sm text-black/45">Актуальная сводка по демонстрационной базе</p></div><button onClick={()=>setTab("orders")} className="rounded-full border border-black/15 px-5 py-2 text-sm font-semibold">Открыть заказы</button></div><div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{orderStatusSummary.map(([label,value,color])=><div key={label} className={`rounded-2xl p-4 ${color}`}><div className="text-sm text-black/55">{label}</div><div className="mt-2 text-3xl font-bold">{value}</div></div>)}</div></div>
               {lowStockProducts.length > 0 && <div className="mt-6 rounded-3xl border border-red-200 bg-red-50 p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-bold text-red-800">Товары заканчиваются</h2><p className="mt-1 text-sm text-red-700">У {lowStockProducts.length} позиций осталось не больше пяти единиц.</p></div><button onClick={()=>setTab("stock")} className="rounded-full bg-red-700 px-5 py-2.5 font-semibold text-white">Проверить остатки</button></div></div>}
               {!supabase && (
                 <div className="mt-6 rounded-3xl border border-amber-300 bg-amber-50 p-6">
