@@ -1,4 +1,15 @@
 export function formatNotificationMessage(message, language) {
+  const systemMessages = {
+    ACCOUNT_WELCOME: {
+      en: "Welcome to SHOP.CO! Your account has been created successfully.",
+      ru: "Добро пожаловать в SHOP.CO! Ваш аккаунт успешно создан.",
+    },
+    ACCOUNT_PASSWORD_CHANGED: {
+      en: "Your SHOP.CO account password was changed. If this wasn't you, reset it immediately.",
+      ru: "Пароль вашего аккаунта SHOP.CO изменён. Если это были не вы, немедленно восстановите пароль.",
+    },
+  };
+  if (systemMessages[message]) return systemMessages[message][language === "ru" ? "ru" : "en"];
   if (message?.startsWith("QUESTION_ANSWER:")) {
     const [, product, ...answerParts] = message.split(":");
     const answer = answerParts.join(":");
