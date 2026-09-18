@@ -78,7 +78,7 @@ export default function AccountPage() {
 
   const cancelOrder = async (order) => {
     if (!supabase || !user || !["new", "pending"].includes(order.status)) return { message: language === "ru" ? "Заказ уже принят в работу." : "The order is already being processed." };
-    const { error } = await supabase.from("orders").update({ status: "cancelled" }).eq("id", order.id).eq("user_id", user.id).in("status", ["new", "pending"]);
+    const { error } = await supabase.rpc("cancel_demo_order", { p_order_id: order.id });
     if (error) return error;
     await supabase.from("order_notifications").insert({ order_id: order.id, user_id: user.id, sender: "customer", message: `Customer cancelled order #${order.id.slice(0, 8)}.`, allow_reply: false, is_read: false });
     setOrders((current) => current.map((item) => item.id === order.id ? { ...item, status: "cancelled" } : item));
