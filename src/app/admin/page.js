@@ -52,6 +52,8 @@ export default function AdminPage() {
   const [subscribers, setSubscribers] = useState([]);
   const [visitors, setVisitors] = useState([]);
   const [analyticsNow, setAnalyticsNow] = useState(0);
+  const [visitorPeriod, setVisitorPeriod] = useState("today");
+  const [ownerVisitorId, setOwnerVisitorId] = useState("");
   const [subscriberQuery, setSubscriberQuery] = useState("");
   const [questionReplies, setQuestionReplies] = useState({});
   const [orderFilter, setOrderFilter] = useState("new");
@@ -172,6 +174,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!supabase || !isOwnerAdmin) return;
+    setOwnerVisitorId(localStorage.getItem("luchik_visitor_id") || "");
     const loadVisitors = async () => {
       const { data } = await supabase
         .from("visitor_events")
@@ -533,10 +536,25 @@ export default function AdminPage() {
   );
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
-  const todayVisitors = visitors.filter((item) => new Date(item.created_at) >= todayStart);
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+  const ownerVisitors = ownerVisitorId ? visitors.filter((item) => item.visitor_id === ownerVisitorId) : [];
+  const externalVisitors = ownerVisitorId ? visitors.filter((item) => item.visitor_id !== ownerVisitorId) : visitors;
+  const todayVisitors = externalVisitors.filter((item) => new Date(item.created_at) >= todayStart);
+  const yesterdayVisitors = externalVisitors.filter((item) => {
+    const date = new Date(item.created_at);
+    return date >= yesterdayStart && date < todayStart;
+  });
+  const earlierVisitors = externalVisitors.filter((item) => new Date(item.created_at) < yesterdayStart);
   const uniqueTodayVisitors = new Set(todayVisitors.map((item) => item.visitor_id)).size;
+  const visitorGroups = { today: todayVisitors, yesterday: yesterdayVisitors, earlier: earlierVisitors, mine: ownerVisitors };
+  const displayedVisitors = visitorGroups[visitorPeriod] || todayVisitors;
+  const visitorNumbers = new Map(
+    [...new Set([...visitors].reverse().map((item) => item.visitor_id))]
+      .map((id, index) => [id, String(index + 1).padStart(3, "0")]),
+  );
   const onlineVisitors = new Set(
-    visitors
+    externalVisitors
       .filter((item) => analyticsNow - new Date(item.created_at).getTime() < 5 * 60 * 1000)
       .map((item) => item.visitor_id),
   ).size;
@@ -1021,7 +1039,7 @@ export default function AdminPage() {
             <>
               <div className="mb-6">
                 <h1 className="font-integral text-3xl font-bold md:text-5xl">ПОСЕТИТЕЛИ</h1>
-                <p className="mt-2 text-black/50">Посещения магазина, просмотренные страницы и авторизованные аккаунты.</p>
+                <p className="mt-2 text-black/50">Посещения, рекламные источники, ссылки перехода и UTM-метки.</p>
               </div>
               <div className="mb-6 grid gap-4 sm:grid-cols-3">
                 {[["Сейчас на сайте", onlineVisitors], ["Уникальных сегодня", uniqueTodayVisitors], ["Просмотров сегодня", todayVisitors.length]].map(([label, value]) => (
@@ -1031,23 +1049,39 @@ export default function AdminPage() {
                   </div>
                 ))}
               </div>
-              {visitors.length ? (
+              <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {[
+                  ["today", "Сегодня", todayVisitors],
+                  ["yesterday", "Вчера", yesterdayVisitors],
+                  ["earlier", "Ранее", earlierVisitors],
+                  ["mine", "Мои посещения", ownerVisitors],
+                ].map(([id, label, items]) => {
+                  const unique = new Set(items.map((item) => item.visitor_id)).size;
+                  return <button key={id} onClick={() => setVisitorPeriod(id)} className={`rounded-3xl border p-5 text-left transition ${visitorPeriod === id ? "border-black bg-black text-white" : "border-black/10 bg-white hover:border-black/30"}`}>
+                    <div className={`text-sm ${visitorPeriod === id ? "text-white/60" : "text-black/50"}`}>{label}</div>
+                    <div className="mt-2 text-2xl font-bold">{unique} посетителей</div>
+                    <div className={`mt-1 text-xs ${visitorPeriod === id ? "text-white/50" : "text-black/40"}`}>{items.length} просмотров</div>
+                  </button>;
+                })}
+              </div>
+              {displayedVisitors.length ? (
                 <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-                  <div className="hidden grid-cols-[1.2fr_1.2fr_110px_1fr_170px] gap-4 bg-black px-6 py-4 text-sm font-bold text-white lg:grid">
-                    <span>Посетитель</span><span>Страница</span><span>Устройство</span><span>Источник</span><span>Время</span>
+                  <div className="hidden grid-cols-[1.05fr_1fr_100px_1.15fr_130px_160px] gap-4 bg-black px-6 py-4 text-sm font-bold text-white xl:grid">
+                    <span>Посетитель</span><span>Страница</span><span>Устройство</span><span>Источник</span><span>IP</span><span>Время</span>
                   </div>
-                  {visitors.map((visit) => (
-                    <div key={visit.id} className="grid gap-2 border-b border-black/5 px-5 py-4 last:border-0 lg:grid-cols-[1.2fr_1.2fr_110px_1fr_170px] lg:items-center lg:gap-4 lg:px-6">
-                      <div className="min-w-0"><div className="truncate font-semibold">{visit.visitor_email || `Гость ${visit.visitor_id.slice(0, 8)}`}</div><div className="truncate text-xs text-black/40">{visit.user_id ? "Авторизован" : "Анонимный посетитель"}</div></div>
+                  {displayedVisitors.map((visit) => (
+                    <div key={visit.id} className="grid gap-2 border-b border-black/5 px-5 py-4 last:border-0 xl:grid-cols-[1.05fr_1fr_100px_1.15fr_130px_160px] xl:items-center xl:gap-4 xl:px-6">
+                      <div className="min-w-0"><div className="truncate font-semibold">{visit.visitor_email || `Посетитель №${visitorNumbers.get(visit.visitor_id)}`}</div><div className="truncate text-xs text-black/40">{visit.user_id ? "Авторизован" : `ID ${visit.visitor_id.slice(0, 8)}`}</div></div>
                       <div className="truncate text-sm font-medium">{visit.path}</div>
                       <div className="text-sm">{visit.device}</div>
-                      <div className="truncate text-sm text-black/50">{visit.referrer ? (() => { try { return new URL(visit.referrer).hostname; } catch { return visit.referrer; } })() : "Прямой вход"}</div>
+                      <div className="min-w-0 text-sm"><div className="font-semibold">{visit.source || (visit.referrer ? (() => { try { return new URL(visit.referrer).hostname; } catch { return "Другая ссылка"; } })() : "Прямой вход")}</div>{visit.referrer && <a href={visit.referrer} target="_blank" rel="noreferrer" className="block truncate text-xs text-blue-600 hover:underline" title={visit.referrer}>{visit.referrer}</a>}{visit.utm_campaign && <div className="truncate text-xs text-black/45">Кампания: {visit.utm_campaign}{visit.utm_medium ? ` · ${visit.utm_medium}` : ""}</div>}</div>
+                      <div className="text-sm text-black/50">{visit.ip_address || "Не определён"}</div>
                       <div className="text-sm text-black/50">{new Date(visit.created_at).toLocaleString("ru-RU")}</div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="rounded-3xl bg-white p-10 text-center text-black/50">Посещений пока нет. После подключения таблицы новые заходы появятся здесь автоматически.</div>
+                <div className="rounded-3xl bg-white p-10 text-center text-black/50">В этом периоде посещений пока нет.</div>
               )}
             </>
           )}
