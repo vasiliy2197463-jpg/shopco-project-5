@@ -1108,7 +1108,7 @@ export default function AdminPage() {
                   </div>
                   {displayedVisitors.map((visit) => (
                     <div key={visit.id} className="grid gap-2 border-b border-black/5 px-5 py-4 last:border-0 xl:grid-cols-[1.05fr_1fr_100px_1.15fr_130px_160px] xl:items-center xl:gap-4 xl:px-6">
-                      <div className="min-w-0"><div className="truncate font-semibold">{visit.visitor_email || `Посетитель №${visitorNumbers.get(visit.visitor_id)}`}</div><div className="truncate text-xs text-black/40">{visit.user_id ? "Авторизован" : `ID ${visit.visitor_id.slice(0, 8)}`}</div></div>
+                      <div className="min-w-0"><div className="truncate font-semibold">{isOwnerVisit(visit) ? "Моё устройство" : (visit.visitor_email || `Посетитель №${visitorNumbers.get(visit.visitor_id)}`)}</div><div className="truncate text-xs text-black/40">{isOwnerVisit(visit) ? (visit.ip_address || "Этот браузер") : (visit.user_id ? "Авторизован" : `ID ${visit.visitor_id.slice(0, 8)}`)}</div></div>
                       <div className="truncate text-sm font-medium">{visit.path}</div>
                       <div className="text-sm">{visit.device}</div>
                       <div className="min-w-0 text-sm"><div className="font-semibold">{visit.source || (visit.referrer ? (() => { try { return new URL(visit.referrer).hostname; } catch { return "Другая ссылка"; } })() : "Прямой вход")}</div>{visit.referrer && <a href={visit.referrer} target="_blank" rel="noreferrer" className="block truncate text-xs text-blue-600 hover:underline" title={visit.referrer}>{visit.referrer}</a>}{visit.utm_campaign && <div className="truncate text-xs text-black/45">Кампания: {visit.utm_campaign}{visit.utm_medium ? ` · ${visit.utm_medium}` : ""}</div>}</div>
