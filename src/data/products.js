@@ -251,10 +251,29 @@ export const products = [
     rating: 5.0,
     reviewCount: 120,
     availableColors: [
-      { name: "Green", hex: "#01AB31" },
-      { name: "Blue", hex: "#0000FF", image: "/images/products/variants/product-7-blue.png" },
-      { name: "Black", hex: "#000000", image: "/images/products/variants/product-7-black.png" },
-      { name: "Purple", hex: "#7D06F5", image: "/images/products/variants/product-7-purple.png" }
+      {
+        name: "Green",
+        hex: "#01AB31",
+        images: ["/images/products/product-7.png", "/images/products/product-7-back.png", "/images/products/product-7-model.png"]
+      },
+      {
+        name: "Blue",
+        hex: "#0000FF",
+        image: "/images/products/variants/product-7-blue.png",
+        images: ["/images/products/variants/product-7-blue.png", "/images/products/models/product-7-blue-front.png"]
+      },
+      {
+        name: "Black",
+        hex: "#000000",
+        image: "/images/products/variants/product-7-black.png",
+        images: ["/images/products/variants/product-7-black.png", "/images/products/models/product-7-black-front.png"]
+      },
+      {
+        name: "Purple",
+        hex: "#7D06F5",
+        image: "/images/products/variants/product-7-purple.png",
+        images: ["/images/products/variants/product-7-purple.png", "/images/products/models/product-7-purple-front.png"]
+      }
     ],
     availableSizes: ["Small", "Medium", "Large", "X-Large"],
     stock: 75,
