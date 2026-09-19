@@ -102,7 +102,7 @@ export const products = [
         name: "Red/White",
         hex: "#FF3333",
         image: "/images/products/variants/product-3-red-white.png",
-        images: ["/images/products/variants/product-3-red-white.png", "/images/products/models/product-3-red-white-front.png"]
+        images: ["/images/products/variants/product-3-red-white.png", "/images/products/models/product-3-red-white-front-v2.png"]
       },
       {
         name: "Blue/White",
@@ -134,9 +134,23 @@ export const products = [
     rating: 3.5,
     reviewCount: 90,
     availableColors: [
-      { name: "Blue", hex: "#0000FF" },
-      { name: "Black", hex: "#000000", image: "/images/products/variants/product-4-black.png" },
-      { name: "White", hex: "#FFFFFF", image: "/images/products/variants/product-4-white.png" }
+      {
+        name: "Blue",
+        hex: "#0000FF",
+        images: ["/images/products/product-4.png", "/images/products/product-4-back.png", "/images/products/product-4-model.png"]
+      },
+      {
+        name: "Black",
+        hex: "#000000",
+        image: "/images/products/variants/product-4-black.png",
+        images: ["/images/products/variants/product-4-black.png", "/images/products/models/product-4-black-front.png"]
+      },
+      {
+        name: "White",
+        hex: "#FFFFFF",
+        image: "/images/products/variants/product-4-white.png",
+        images: ["/images/products/variants/product-4-white.png", "/images/products/models/product-4-white-front.png"]
+      }
     ],
     availableSizes: ["Small", "Medium", "Large", "X-Large"],
     stock: 50,
