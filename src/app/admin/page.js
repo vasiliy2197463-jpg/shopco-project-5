@@ -53,6 +53,7 @@ export default function AdminPage() {
   const [visitors, setVisitors] = useState([]);
   const [analyticsNow, setAnalyticsNow] = useState(0);
   const [visitorPeriod, setVisitorPeriod] = useState("today");
+  const [visitorDevice, setVisitorDevice] = useState("all");
   const [ownerVisitorId, setOwnerVisitorId] = useState("");
   const [subscriberQuery, setSubscriberQuery] = useState("");
   const [questionReplies, setQuestionReplies] = useState({});
@@ -548,7 +549,10 @@ export default function AdminPage() {
   const earlierVisitors = externalVisitors.filter((item) => new Date(item.created_at) < yesterdayStart);
   const uniqueTodayVisitors = new Set(todayVisitors.map((item) => item.visitor_id)).size;
   const visitorGroups = { today: todayVisitors, yesterday: yesterdayVisitors, earlier: earlierVisitors, mine: ownerVisitors };
-  const displayedVisitors = visitorGroups[visitorPeriod] || todayVisitors;
+  const periodVisitors = visitorGroups[visitorPeriod] || todayVisitors;
+  const displayedVisitors = visitorDevice === "all" || visitorDevice === "mine"
+    ? (visitorDevice === "mine" ? ownerVisitors : periodVisitors)
+    : periodVisitors.filter((item) => visitorDevice === "phone" ? item.device === "Телефон" : item.device !== "Телефон");
   const visitorNumbers = new Map(
     [...new Set([...visitors].reverse().map((item) => item.visitor_id))]
       .map((id, index) => [id, String(index + 1).padStart(3, "0")]),
@@ -1063,6 +1067,28 @@ export default function AdminPage() {
                     <div className={`mt-1 text-xs ${visitorPeriod === id ? "text-white/50" : "text-black/40"}`}>{items.length} просмотров</div>
                   </button>;
                 })}
+              </div>
+              <div className="mb-6 flex flex-col gap-3 rounded-3xl bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <div className="text-sm font-bold">Показать устройство</div>
+                  <div className="text-xs text-black/45">Ваши визиты не входят в общую статистику.</div>
+                </div>
+                <select value={visitorDevice} onChange={(event) => setVisitorDevice(event.target.value)} className="rounded-full border border-black/15 bg-white px-5 py-3 font-semibold outline-none focus:border-black">
+                  <option value="all">Все посетители</option>
+                  <option value="mine">Моё устройство</option>
+                  <option value="desktop">Компьютер</option>
+                  <option value="phone">Телефон</option>
+                </select>
+              </div>
+              <div className="mb-6 rounded-3xl bg-white p-5 shadow-sm">
+                <div className="font-bold">Ссылки для рекламы</div>
+                <p className="mt-1 text-sm text-black/50">Используйте соответствующую ссылку в каждой соцсети — тогда источник определится точно, даже если приложение скрывает переход.</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {[["Telegram", "telegram"], ["Instagram", "instagram"], ["VK", "vk"]].map(([label, source]) => {
+                    const campaignPath = assetPath(`/?utm_source=${source}&utm_medium=social`);
+                    return <button key={source} onClick={() => { navigator.clipboard.writeText(`${window.location.origin}${campaignPath}`); setNotice(`Ссылка для ${label} скопирована`); }} className="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-black/75">Скопировать для {label}</button>;
+                  })}
+                </div>
               </div>
               {displayedVisitors.length ? (
                 <div className="overflow-hidden rounded-3xl bg-white shadow-sm">

@@ -19,7 +19,11 @@ const detectSource = (referrer, params) => {
   if (/google\./.test(value)) return "Google";
   if (/yandex\./.test(value)) return "Яндекс";
   if (!value) return "Прямой вход";
-  try { return new URL(referrer).hostname.replace(/^www\./, ""); } catch { return "Другая ссылка"; }
+  try {
+    const url = new URL(referrer);
+    if (url.origin === window.location.origin) return "Прямой вход";
+    return url.hostname.replace(/^www\./, "");
+  } catch { return "Другая ссылка"; }
 };
 
 export default function VisitorTracker() {
@@ -47,7 +51,7 @@ export default function VisitorTracker() {
     sessionStorage.setItem(eventKey, String(Date.now()));
 
     const params = new URLSearchParams(window.location.search);
-    const storedAcquisition = sessionStorage.getItem("luchik_acquisition");
+    const storedAcquisition = sessionStorage.getItem("luchik_acquisition_v2");
     let acquisition;
     if (storedAcquisition) {
       try { acquisition = JSON.parse(storedAcquisition); } catch { acquisition = null; }
@@ -62,7 +66,7 @@ export default function VisitorTracker() {
         utm_campaign: params.get("utm_campaign") || null,
         utm_content: params.get("utm_content") || null,
       };
-      sessionStorage.setItem("luchik_acquisition", JSON.stringify(acquisition));
+      sessionStorage.setItem("luchik_acquisition_v2", JSON.stringify(acquisition));
     }
 
     const width = window.innerWidth;
