@@ -539,8 +539,19 @@ export default function AdminPage() {
   todayStart.setHours(0, 0, 0, 0);
   const yesterdayStart = new Date(todayStart);
   yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-  const ownerVisitors = ownerVisitorId ? visitors.filter((item) => item.visitor_id === ownerVisitorId) : [];
-  const externalVisitors = ownerVisitorId ? visitors.filter((item) => item.visitor_id !== ownerVisitorId) : visitors;
+  const ownerIds = new Set(
+    visitors
+      .filter((item) => item.visitor_id === ownerVisitorId || (user?.email && item.visitor_email === user.email))
+      .map((item) => item.visitor_id),
+  );
+  const ownerIps = new Set(
+    visitors
+      .filter((item) => ownerIds.has(item.visitor_id) && item.ip_address)
+      .map((item) => item.ip_address),
+  );
+  const isOwnerVisit = (item) => ownerIds.has(item.visitor_id) || Boolean(item.ip_address && ownerIps.has(item.ip_address));
+  const ownerVisitors = visitors.filter(isOwnerVisit);
+  const externalVisitors = visitors.filter((item) => !isOwnerVisit(item));
   const todayVisitors = externalVisitors.filter((item) => new Date(item.created_at) >= todayStart);
   const yesterdayVisitors = externalVisitors.filter((item) => {
     const date = new Date(item.created_at);
