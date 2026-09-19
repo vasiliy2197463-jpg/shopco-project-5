@@ -25,12 +25,21 @@ export default function ProductCard({ product, priority = false }) {
   const touchStartX = useRef(null);
   const suppressLink = useRef(false);
   const selectedColorName = selectedColor.name;
-  const galleryImages = (selectedColor.images?.length
-    ? selectedColor.images
-    : selectedColor.image
-      ? [selectedColor.image]
-      : product.images || []).filter(Boolean);
-  const currentImage = galleryImages[slideIndex % Math.max(galleryImages.length, 1)] || product.images?.[0];
+  const gallerySlides = (product.availableColors?.length
+    ? product.availableColors.flatMap((color, colorIndex) => {
+        const images = color.images?.length
+          ? color.images
+          : color.image
+            ? [color.image]
+            : colorIndex === 0
+              ? product.images || []
+              : [];
+        return images.filter(Boolean).map((src) => ({ src, color }));
+      })
+    : (product.images || []).filter(Boolean).map((src) => ({ src, color: selectedColor }))
+  );
+  const currentSlide = gallerySlides[slideIndex % Math.max(gallerySlides.length, 1)];
+  const currentImage = currentSlide?.src || product.images?.[0];
   const cartItem = items.find(
     (item) =>
       item.id === product.id &&
@@ -52,8 +61,12 @@ export default function ProductCard({ product, priority = false }) {
   };
 
   const changeSlide = (direction) => {
-    if (galleryImages.length < 2) return;
-    setSlideIndex((current) => (current + direction + galleryImages.length) % galleryImages.length);
+    if (gallerySlides.length < 2) return;
+    setSlideIndex((current) => {
+      const next = (current + direction + gallerySlides.length) % gallerySlides.length;
+      if (gallerySlides[next]?.color) setSelectedColor(gallerySlides[next].color);
+      return next;
+    });
   };
 
   const finishSwipe = (clientX) => {
@@ -80,11 +93,11 @@ export default function ProductCard({ product, priority = false }) {
               className="object-contain group-hover:scale-105 transition-transform duration-300"
             />
           )}
-          {galleryImages.length > 1 && <>
+          {gallerySlides.length > 1 && <>
             <button type="button" aria-label={language === "ru" ? "Предыдущее фото" : "Previous image"} onClick={(event) => { event.preventDefault(); event.stopPropagation(); changeSlide(-1); }} className="absolute left-2 top-1/2 z-[5] hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow transition hover:bg-black hover:text-white sm:flex"><IoChevronBack size={20} /></button>
             <button type="button" aria-label={language === "ru" ? "Следующее фото" : "Next image"} onClick={(event) => { event.preventDefault(); event.stopPropagation(); changeSlide(1); }} className="absolute right-2 top-1/2 z-[5] hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow transition hover:bg-black hover:text-white sm:flex"><IoChevronForward size={20} /></button>
             <div className="absolute bottom-2 left-1/2 z-[5] flex -translate-x-1/2 gap-1.5 rounded-full bg-white/80 px-2 py-1 shadow-sm">
-              {galleryImages.map((_, index) => <span key={index} className={`h-1.5 rounded-full transition-all ${index === slideIndex ? "w-4 bg-black" : "w-1.5 bg-black/30"}`} />)}
+              {gallerySlides.map((_, index) => <span key={index} className={`h-1.5 rounded-full transition-all ${index === slideIndex ? "w-4 bg-black" : "w-1.5 bg-black/30"}`} />)}
             </div>
           </>}
         </div>
@@ -159,7 +172,11 @@ export default function ProductCard({ product, priority = false }) {
             title={color.name}
             aria-label={`Choose ${color.name}`}
             aria-pressed={selectedColorName === color.name}
-            onClick={() => { setSelectedColor(color); setSlideIndex(0); }}
+            onClick={() => {
+              setSelectedColor(color);
+              const firstColorSlide = gallerySlides.findIndex((slide) => slide.color.name === color.name);
+              setSlideIndex(firstColorSlide >= 0 ? firstColorSlide : 0);
+            }}
             className={`w-5 h-5 rounded-full border-2 transition-transform hover:scale-110 ${selectedColorName === color.name ? "border-black scale-110" : "border-white ring-1 ring-black/20"}`}
             style={{ backgroundColor: color.hex }}
           />
