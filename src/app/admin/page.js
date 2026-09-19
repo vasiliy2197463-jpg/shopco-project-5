@@ -55,6 +55,7 @@ export default function AdminPage() {
   const [visitorPeriod, setVisitorPeriod] = useState("today");
   const [visitorDevice, setVisitorDevice] = useState("all");
   const [ownerVisitorId, setOwnerVisitorId] = useState("");
+  const [expandedVisitorKey, setExpandedVisitorKey] = useState("");
   const [subscriberQuery, setSubscriberQuery] = useState("");
   const [questionReplies, setQuestionReplies] = useState({});
   const [orderFilter, setOrderFilter] = useState("new");
@@ -558,21 +559,51 @@ export default function AdminPage() {
     return date >= yesterdayStart && date < todayStart;
   });
   const earlierVisitors = externalVisitors.filter((item) => new Date(item.created_at) < yesterdayStart);
-  const uniqueTodayVisitors = new Set(todayVisitors.map((item) => item.visitor_id)).size;
   const visitorGroups = { today: todayVisitors, yesterday: yesterdayVisitors, earlier: earlierVisitors, mine: ownerVisitors };
   const periodVisitors = visitorGroups[visitorPeriod] || todayVisitors;
   const displayedVisitors = visitorDevice === "all" || visitorDevice === "mine"
     ? (visitorDevice === "mine" ? ownerVisitors : periodVisitors)
     : periodVisitors.filter((item) => visitorDevice === "phone" ? item.device === "Телефон" : item.device !== "Телефон");
+  const groupVisitorEvents = (items) => {
+    const folders = new Map();
+    items.forEach((visit) => {
+      const key = isOwnerVisit(visit)
+        ? "owner"
+        : visit.ip_address
+          ? `ip:${visit.ip_address}`
+          : visit.visitor_email
+            ? `email:${visit.visitor_email.toLowerCase()}`
+            : `visitor:${visit.visitor_id}`;
+      if (!folders.has(key)) folders.set(key, { key, visits: [] });
+      folders.get(key).visits.push(visit);
+    });
+    return [...folders.values()].map((folder) => {
+      folder.visits.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      const identified = folder.visits.find((item) => item.visitor_email);
+      const latest = folder.visits[0];
+      return { ...folder, latest, identified, first: folder.visits[folder.visits.length - 1] };
+    }).sort((a, b) => new Date(b.latest.created_at) - new Date(a.latest.created_at));
+  };
+  const displayedVisitorFolders = groupVisitorEvents(displayedVisitors);
+  const visitorFolderCount = (items) => groupVisitorEvents(items).length;
+  const uniqueTodayVisitors = visitorFolderCount(todayVisitors);
   const visitorNumbers = new Map(
     [...new Set([...visitors].reverse().map((item) => item.visitor_id))]
       .map((id, index) => [id, String(index + 1).padStart(3, "0")]),
   );
-  const onlineVisitors = new Set(
-    externalVisitors
-      .filter((item) => analyticsNow - new Date(item.created_at).getTime() < 5 * 60 * 1000)
-      .map((item) => item.visitor_id),
-  ).size;
+  const onlineVisitors = visitorFolderCount(
+    externalVisitors.filter((item) => analyticsNow - new Date(item.created_at).getTime() < 5 * 60 * 1000),
+  );
+
+  const deleteVisitorFolder = async (folder) => {
+    if (!supabase || !window.confirm("Удалить всю историю посещений этого человека?")) return;
+    const ids = folder.visits.map((item) => item.id);
+    const { error } = await supabase.from("visitor_events").delete().in("id", ids);
+    if (error) return setNotice(`Ошибка: ${error.message}`);
+    setVisitors((current) => current.filter((item) => !ids.includes(item.id)));
+    setExpandedVisitorKey("");
+    setNotice("История посетителя удалена");
+  };
 
   if (authLoading)
     return (
@@ -1071,7 +1102,7 @@ export default function AdminPage() {
                   ["earlier", "Ранее", earlierVisitors],
                   ["mine", "Мои посещения", ownerVisitors],
                 ].map(([id, label, items]) => {
-                  const unique = new Set(items.map((item) => item.visitor_id)).size;
+                  const unique = visitorFolderCount(items);
                   return <button key={id} onClick={() => setVisitorPeriod(id)} className={`rounded-3xl border p-5 text-left transition ${visitorPeriod === id ? "border-black bg-black text-white" : "border-black/10 bg-white hover:border-black/30"}`}>
                     <div className={`text-sm ${visitorPeriod === id ? "text-white/60" : "text-black/50"}`}>{label}</div>
                     <div className="mt-2 text-2xl font-bold">{unique} посетителей</div>
@@ -1091,31 +1122,46 @@ export default function AdminPage() {
                   <option value="phone">Телефон</option>
                 </select>
               </div>
-              <div className="mb-6 rounded-3xl bg-white p-5 shadow-sm">
-                <div className="font-bold">Ссылки для рекламы</div>
-                <p className="mt-1 text-sm text-black/50">Используйте соответствующую ссылку в каждой соцсети — тогда источник определится точно, даже если приложение скрывает переход.</p>
+              <details className="mb-6 rounded-3xl bg-white p-5 shadow-sm">
+                <summary className="cursor-pointer font-bold">Ссылки для рекламы</summary>
+                <p className="mt-3 text-sm text-black/50">Используйте соответствующую ссылку в каждой соцсети — тогда источник определится точно, даже если приложение скрывает переход.</p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {[["Telegram", "telegram"], ["Instagram", "instagram"], ["VK", "vk"]].map(([label, source]) => {
                     const campaignPath = assetPath(`/?utm_source=${source}&utm_medium=social`);
                     return <button key={source} onClick={() => { navigator.clipboard.writeText(`${window.location.origin}${campaignPath}`); setNotice(`Ссылка для ${label} скопирована`); }} className="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-black/75">Скопировать для {label}</button>;
                   })}
                 </div>
-              </div>
-              {displayedVisitors.length ? (
-                <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-                  <div className="hidden grid-cols-[1.05fr_1fr_100px_1.15fr_130px_160px] gap-4 bg-black px-6 py-4 text-sm font-bold text-white xl:grid">
-                    <span>Посетитель</span><span>Страница</span><span>Устройство</span><span>Источник</span><span>IP</span><span>Время</span>
-                  </div>
-                  {displayedVisitors.map((visit) => (
-                    <div key={visit.id} className="grid gap-2 border-b border-black/5 px-5 py-4 last:border-0 xl:grid-cols-[1.05fr_1fr_100px_1.15fr_130px_160px] xl:items-center xl:gap-4 xl:px-6">
-                      <div className="min-w-0"><div className="truncate font-semibold">{isOwnerVisit(visit) ? "Моё устройство" : (visit.visitor_email || `Посетитель №${visitorNumbers.get(visit.visitor_id)}`)}</div><div className="truncate text-xs text-black/40">{isOwnerVisit(visit) ? (visit.ip_address || "Этот браузер") : (visit.user_id ? "Авторизован" : `ID ${visit.visitor_id.slice(0, 8)}`)}</div></div>
-                      <div className="truncate text-sm font-medium">{visit.path}</div>
-                      <div className="text-sm">{visit.device}</div>
-                      <div className="min-w-0 text-sm"><div className="font-semibold">{visit.source || (visit.referrer ? (() => { try { return new URL(visit.referrer).hostname; } catch { return "Другая ссылка"; } })() : "Прямой вход")}</div>{visit.referrer && <a href={visit.referrer} target="_blank" rel="noreferrer" className="block truncate text-xs text-blue-600 hover:underline" title={visit.referrer}>{visit.referrer}</a>}{visit.utm_campaign && <div className="truncate text-xs text-black/45">Кампания: {visit.utm_campaign}{visit.utm_medium ? ` · ${visit.utm_medium}` : ""}</div>}</div>
-                      <div className="text-sm text-black/50">{visit.ip_address || "Не определён"}</div>
-                      <div className="text-sm text-black/50">{new Date(visit.created_at).toLocaleString("ru-RU")}</div>
-                    </div>
-                  ))}
+              </details>
+              {displayedVisitorFolders.length ? (
+                <div className="grid gap-3">
+                  {displayedVisitorFolders.map((folder) => {
+                    const open = expandedVisitorKey === folder.key;
+                    const ownerFolder = folder.key === "owner";
+                    const label = ownerFolder ? "Моё устройство" : (folder.identified?.visitor_email || `Посетитель №${visitorNumbers.get(folder.latest.visitor_id)}`);
+                    const sources = [...new Set(folder.visits.map((item) => item.source || "Прямой вход"))].join(", ");
+                    return <div key={folder.key} className="overflow-hidden rounded-3xl bg-white shadow-sm">
+                      <button onClick={() => setExpandedVisitorKey(open ? "" : folder.key)} className="grid w-full gap-3 p-5 text-left md:grid-cols-[1.3fr_1fr_110px_130px_32px] md:items-center md:px-6">
+                        <div className="min-w-0"><div className="truncate font-bold">{label}</div><div className="text-xs text-black/40">{folder.latest.ip_address || `ID ${folder.latest.visitor_id.slice(0, 8)}`}</div></div>
+                        <div><div className="text-xs text-black/40">Источник</div><div className="truncate font-semibold">{sources}</div></div>
+                        <div><div className="text-xs text-black/40">Устройство</div><div className="font-medium">{folder.latest.device}</div></div>
+                        <div><div className="text-xs text-black/40">Действий</div><div className="font-bold">{folder.visits.length}</div></div>
+                        <div className={`text-2xl transition ${open ? "rotate-180" : ""}`}>⌄</div>
+                      </button>
+                      {open && <div className="border-t border-black/10 bg-[#fafafa] p-5 md:p-6">
+                        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="text-sm text-black/55">Первый визит: {new Date(folder.first.created_at).toLocaleString("ru-RU")} · Последнее действие: {new Date(folder.latest.created_at).toLocaleString("ru-RU")}</div>
+                          <button onClick={() => deleteVisitorFolder(folder)} className="w-fit rounded-full bg-red-100 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-600 hover:text-white">Удалить историю</button>
+                        </div>
+                        <div className="grid gap-2">
+                          {folder.visits.map((visit) => <div key={visit.id} className="grid gap-1 rounded-2xl bg-white px-4 py-3 text-sm sm:grid-cols-[1fr_1fr_170px] sm:items-center">
+                            <div className="font-semibold">{visit.path}</div>
+                            <div className="truncate text-black/50">{visit.source || "Прямой вход"}{visit.utm_campaign ? ` · ${visit.utm_campaign}` : ""}</div>
+                            <div className="text-black/45">{new Date(visit.created_at).toLocaleString("ru-RU")}</div>
+                          </div>)}
+                        </div>
+                      </div>}
+                    </div>;
+                  })}
                 </div>
               ) : (
                 <div className="rounded-3xl bg-white p-10 text-center text-black/50">В этом периоде посещений пока нет.</div>
