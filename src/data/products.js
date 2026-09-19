@@ -169,10 +169,29 @@ export const products = [
     rating: 4.5,
     reviewCount: 35,
     availableColors: [
-      { name: "Red/Blue", hex: "#FF3333" },
-      { name: "Blue/White", hex: "#0000FF", image: "/images/products/variants/product-5-blue-white.png" },
-      { name: "Green/Blue", hex: "#01AB31", image: "/images/products/variants/product-5-green-white.png" },
-      { name: "Yellow/Black", hex: "#F5DD06", image: "/images/products/variants/product-5-yellow-black.png" }
+      {
+        name: "Red/Blue",
+        hex: "#FF3333",
+        images: ["/images/products/product-5.png", "/images/products/product-5-back.png", "/images/products/product-5-model.png"]
+      },
+      {
+        name: "Blue/White",
+        hex: "#0000FF",
+        image: "/images/products/variants/product-5-blue-white.png",
+        images: ["/images/products/variants/product-5-blue-white.png", "/images/products/models/product-5-blue-white-front.png"]
+      },
+      {
+        name: "Green/Blue",
+        hex: "#01AB31",
+        image: "/images/products/variants/product-5-green-white.png",
+        images: ["/images/products/variants/product-5-green-white.png", "/images/products/models/product-5-green-blue-front-v2.png"]
+      },
+      {
+        name: "Yellow/Black",
+        hex: "#F5DD06",
+        image: "/images/products/variants/product-5-yellow-black.png",
+        images: ["/images/products/variants/product-5-yellow-black.png", "/images/products/models/product-5-yellow-black-front.png"]
+      }
     ],
     availableSizes: ["Small", "Medium", "Large", "X-Large"],
     stock: 60,
