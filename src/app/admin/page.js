@@ -50,6 +50,8 @@ export default function AdminPage() {
   const [reviews, setReviews] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [subscribers, setSubscribers] = useState([]);
+  const [visitors, setVisitors] = useState([]);
+  const [analyticsNow, setAnalyticsNow] = useState(0);
   const [subscriberQuery, setSubscriberQuery] = useState("");
   const [questionReplies, setQuestionReplies] = useState({});
   const [orderFilter, setOrderFilter] = useState("new");
@@ -165,6 +167,22 @@ export default function AdminPage() {
       if (messageData) setCustomerMessages(messageData);
     };
     const timer = setInterval(refreshOrders, 15000);
+    return () => clearInterval(timer);
+  }, [supabase, isOwnerAdmin]);
+
+  useEffect(() => {
+    if (!supabase || !isOwnerAdmin) return;
+    const loadVisitors = async () => {
+      const { data } = await supabase
+        .from("visitor_events")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (data) setVisitors(data);
+      setAnalyticsNow(Date.now());
+    };
+    loadVisitors();
+    const timer = setInterval(loadVisitors, 15000);
     return () => clearInterval(timer);
   }, [supabase, isOwnerAdmin]);
 
@@ -513,6 +531,15 @@ export default function AdminPage() {
       ? ["new", "pending"].includes(order.status)
       : order.status === orderFilter,
   );
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayVisitors = visitors.filter((item) => new Date(item.created_at) >= todayStart);
+  const uniqueTodayVisitors = new Set(todayVisitors.map((item) => item.visitor_id)).size;
+  const onlineVisitors = new Set(
+    visitors
+      .filter((item) => analyticsNow - new Date(item.created_at).getTime() < 5 * 60 * 1000)
+      .map((item) => item.visitor_id),
+  ).size;
 
   if (authLoading)
     return (
@@ -564,6 +591,7 @@ export default function AdminPage() {
             ["trash", `Корзина (${trashedProducts.length})`],
             ["promos", "Промокоды"],
             ["subscribers", `Подписчики (${subscribers.length})`],
+            ["visitors", `Посетители (${uniqueTodayVisitors})`],
             ["reviews", `Отзывы (${reviews.filter((item) => !item.approved).length} на проверке)`],
             ["messages", `Сообщения (${customerMessages.filter((item) => !item.is_read).length})`],
             [
@@ -985,6 +1013,41 @@ export default function AdminPage() {
                 <div className="rounded-3xl bg-white p-10 text-center text-black/50">
                   Подписчиков пока нет
                 </div>
+              )}
+            </>
+          )}
+
+          {!loading && tab === "visitors" && (
+            <>
+              <div className="mb-6">
+                <h1 className="font-integral text-3xl font-bold md:text-5xl">ПОСЕТИТЕЛИ</h1>
+                <p className="mt-2 text-black/50">Посещения магазина, просмотренные страницы и авторизованные аккаунты.</p>
+              </div>
+              <div className="mb-6 grid gap-4 sm:grid-cols-3">
+                {[["Сейчас на сайте", onlineVisitors], ["Уникальных сегодня", uniqueTodayVisitors], ["Просмотров сегодня", todayVisitors.length]].map(([label, value]) => (
+                  <div key={label} className="rounded-3xl bg-white p-6 shadow-sm">
+                    <div className="text-sm text-black/50">{label}</div>
+                    <div className="mt-3 text-3xl font-bold">{value}</div>
+                  </div>
+                ))}
+              </div>
+              {visitors.length ? (
+                <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
+                  <div className="hidden grid-cols-[1.2fr_1.2fr_110px_1fr_170px] gap-4 bg-black px-6 py-4 text-sm font-bold text-white lg:grid">
+                    <span>Посетитель</span><span>Страница</span><span>Устройство</span><span>Источник</span><span>Время</span>
+                  </div>
+                  {visitors.map((visit) => (
+                    <div key={visit.id} className="grid gap-2 border-b border-black/5 px-5 py-4 last:border-0 lg:grid-cols-[1.2fr_1.2fr_110px_1fr_170px] lg:items-center lg:gap-4 lg:px-6">
+                      <div className="min-w-0"><div className="truncate font-semibold">{visit.visitor_email || `Гость ${visit.visitor_id.slice(0, 8)}`}</div><div className="truncate text-xs text-black/40">{visit.user_id ? "Авторизован" : "Анонимный посетитель"}</div></div>
+                      <div className="truncate text-sm font-medium">{visit.path}</div>
+                      <div className="text-sm">{visit.device}</div>
+                      <div className="truncate text-sm text-black/50">{visit.referrer ? (() => { try { return new URL(visit.referrer).hostname; } catch { return visit.referrer; } })() : "Прямой вход"}</div>
+                      <div className="text-sm text-black/50">{new Date(visit.created_at).toLocaleString("ru-RU")}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-3xl bg-white p-10 text-center text-black/50">Посещений пока нет. После подключения таблицы новые заходы появятся здесь автоматически.</div>
               )}
             </>
           )}

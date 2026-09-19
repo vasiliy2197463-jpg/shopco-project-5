@@ -7,6 +7,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { CatalogProvider } from "@/context/CatalogContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { CompareProvider } from "@/context/CompareContext";
+import VisitorTracker from "@/components/common/VisitorTracker";
 
 export const metadata = {
   title: "LUCHIK.CO | Find Clothes That Matches Your Style",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
         <LanguageProvider>
           <SiteTranslator />
           <AuthProvider>
+            <VisitorTracker />
             <CatalogProvider>
               <WishlistProvider>
                 <CompareProvider><CartProvider>
