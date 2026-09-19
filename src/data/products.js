@@ -210,10 +210,29 @@ export const products = [
     rating: 4.5,
     reviewCount: 50,
     availableColors: [
-      { name: "Orange", hex: "#FFA500" },
-      { name: "Black", hex: "#000000", image: "/images/products/variants/product-6-black.png" },
-      { name: "White", hex: "#FFFFFF", image: "/images/products/variants/product-6-white.png" },
-      { name: "Pink", hex: "#F506A4", image: "/images/products/variants/product-6-pink.png" }
+      {
+        name: "Orange",
+        hex: "#FFA500",
+        images: ["/images/products/product-6.png", "/images/products/product-6-back.png", "/images/products/product-6-model.png"]
+      },
+      {
+        name: "Black",
+        hex: "#000000",
+        image: "/images/products/variants/product-6-black.png",
+        images: ["/images/products/variants/product-6-black.png", "/images/products/models/product-6-black-front.png"]
+      },
+      {
+        name: "White",
+        hex: "#FFFFFF",
+        image: "/images/products/variants/product-6-white.png",
+        images: ["/images/products/variants/product-6-white.png", "/images/products/models/product-6-white-front.png"]
+      },
+      {
+        name: "Pink",
+        hex: "#F506A4",
+        image: "/images/products/variants/product-6-pink.png",
+        images: ["/images/products/variants/product-6-pink.png", "/images/products/models/product-6-pink-front.png"]
+      }
     ],
     availableSizes: ["Small", "Medium", "Large", "X-Large"],
     stock: 90,
