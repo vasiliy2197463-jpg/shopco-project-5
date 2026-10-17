@@ -20,6 +20,7 @@ export default function ImmersiveProduct() {
   const [quantities, setQuantities] = useState(() => Object.fromEntries(products.map((product) => [product.id, 1])));
   const [added, setAdded] = useState(false);
   const [autoplayReset, setAutoplayReset] = useState(0);
+  const [isMobileCarousel, setIsMobileCarousel] = useState(false);
   const dragStart = useRef(null);
   const dragMoved = useRef(false);
   const wheelLock = useRef(false);
@@ -35,7 +36,15 @@ export default function ImmersiveProduct() {
   }, [move]);
 
   useEffect(() => {
-    if (expanded) return undefined;
+    const mobileQuery = window.matchMedia('(max-width: 700px)');
+    const syncMobileMode = () => setIsMobileCarousel(mobileQuery.matches);
+    syncMobileMode();
+    mobileQuery.addEventListener('change', syncMobileMode);
+    return () => mobileQuery.removeEventListener('change', syncMobileMode);
+  }, []);
+
+  useEffect(() => {
+    if (expanded || isMobileCarousel) return undefined;
     let autoplay;
     const resumeDelay = autoplayReset === 0 ? 2600 : 1500;
     const resume = window.setTimeout(() => {
@@ -46,7 +55,7 @@ export default function ImmersiveProduct() {
       window.clearTimeout(resume);
       window.clearInterval(autoplay);
     };
-  }, [autoplayReset, expanded, move]);
+  }, [autoplayReset, expanded, isMobileCarousel, move]);
 
   useEffect(() => {
     const stage = stageRef.current;
