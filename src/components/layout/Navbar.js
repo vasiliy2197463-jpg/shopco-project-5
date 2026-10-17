@@ -227,7 +227,7 @@ export default function Navbar() {
     <nav
       className={`sticky top-0 z-40 bg-white transition-all ${isScrolled ? "border-b border-[rgba(0,0,0,0.1)] shadow-sm" : ""}`}
     >
-      <div className="max-w-[1240px] w-full mx-auto px-4 md:px-6 lg:px-4 xl:px-6 h-16 md:h-24 flex items-center justify-between">
+      <div className="max-w-[1240px] w-full mx-auto px-4 md:px-6 lg:px-4 xl:px-6 h-16 md:h-24 flex items-center justify-between gap-1">
         {/* Mobile Left: Hamburger */}
         <button
           className="lg:hidden text-black hover:text-gray-600 transition-colors"
@@ -240,7 +240,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link
           href="/"
-          className="font-integral text-[24px] md:text-[32px] font-bold text-black tracking-tight ml-3 lg:ml-0 lg:mr-2 xl:mr-6 flex-shrink-0 flex items-center justify-center"
+          className="font-integral text-[20px] sm:text-[24px] md:text-[32px] font-bold text-black tracking-tight ml-1 sm:ml-3 lg:ml-0 lg:mr-2 xl:mr-6 flex-shrink-0 flex items-center justify-center"
         >
           LUCHIK.CO
         </Link>
@@ -383,7 +383,7 @@ export default function Navbar() {
         </form>
 
         <div
-          className="flex rounded-full border border-black/20 overflow-hidden bg-white shrink-0 mr-2"
+          className="flex rounded-full border border-black/20 overflow-hidden bg-white shrink-0 mr-0 sm:mr-2"
           aria-label="Language switcher"
         >
           {["en", "ru"].map((code) => (
@@ -391,7 +391,7 @@ export default function Navbar() {
               key={code}
               type="button"
               onClick={() => changeLanguage(code)}
-              className={`px-2.5 py-1.5 text-[11px] sm:text-xs font-bold uppercase transition-colors ${language === code ? "bg-black text-white" : "text-black hover:bg-black/10"}`}
+              className={`px-1.5 sm:px-2.5 py-1.5 text-[10px] sm:text-xs font-bold uppercase transition-colors ${language === code ? "bg-black text-white" : "text-black hover:bg-black/10"}`}
               aria-pressed={language === code}
             >
               {code}
@@ -400,10 +400,10 @@ export default function Navbar() {
         </div>
 
         {/* Right Icons */}
-        <div className="flex h-10 items-center gap-2 md:gap-4 flex-shrink-0 ml-auto lg:ml-0">
+        <div className="flex h-10 items-center gap-0 sm:gap-2 md:gap-4 flex-shrink-0 ml-auto lg:ml-0">
           <button
             onClick={() => setIsMobileSearchOpen((value) => !value)}
-            className="inline-flex h-10 w-10 items-center justify-center text-black hover:text-gray-600 transition-colors lg:hidden"
+            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center text-black hover:text-gray-600 transition-colors lg:hidden"
             aria-label="Search"
           >
             <IoSearchOutline size={24} className="md:w-7 md:h-7" />
@@ -419,7 +419,7 @@ export default function Navbar() {
 
           <Link
             href="/cart"
-            className="relative inline-flex h-10 w-10 items-center justify-center text-black hover:text-gray-600 transition-colors"
+            className="relative inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center text-black hover:text-gray-600 transition-colors"
             aria-label="Cart"
           >
             <IoCartOutline size={24} className="md:w-7 md:h-7" />
@@ -482,7 +482,7 @@ export default function Navbar() {
           )}
           <Link
             href="/account"
-            className="inline-flex h-10 w-10 items-center justify-center text-black hover:text-gray-600 transition-colors"
+            className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center text-black hover:text-gray-600 transition-colors"
             aria-label="Account"
           >
             <IoPersonOutline size={24} className="md:w-7 md:h-7" />
