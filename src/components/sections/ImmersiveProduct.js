@@ -20,6 +20,7 @@ export default function ImmersiveProduct() {
   const [quantities, setQuantities] = useState(() => Object.fromEntries(products.map((product) => [product.id, 1])));
   const [added, setAdded] = useState(false);
   const dragStart = useRef(null);
+  const dragMoved = useRef(false);
   const wheelLock = useRef(false);
   const stageRef = useRef(null);
   const move = useCallback((direction) => {
@@ -48,16 +49,25 @@ export default function ImmersiveProduct() {
   }, [move]);
 
   const handlePointerDown = (event) => {
-    if (event.target.closest('button')) return;
+    if (event.target.closest('.immersive-product__purchase, .immersive-product__reveal-facts, .immersive-product__arrow')) return;
     dragStart.current = event.clientX;
+    dragMoved.current = false;
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const handlePointerUp = (event) => {
     if (dragStart.current === null) return;
     const distance = event.clientX - dragStart.current;
-    if (Math.abs(distance) > 38) move(distance < 0 ? 1 : -1);
+    if (Math.abs(distance) > 38) {
+      dragMoved.current = true;
+      move(distance < 0 ? 1 : -1);
+    }
     dragStart.current = null;
+  };
+
+  const cancelDrag = () => {
+    dragStart.current = null;
+    dragMoved.current = false;
   };
 
   const current = products[active];
@@ -91,7 +101,7 @@ export default function ImmersiveProduct() {
         <span>Прокрутите колесо или потяните витрину в сторону</span>
       </div>
 
-      <div ref={stageRef} className="immersive-product__stage" data-expanded={expanded} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={() => { dragStart.current = null; }}>
+      <div ref={stageRef} className="immersive-product__stage" data-expanded={expanded} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={cancelDrag}>
         <div className="immersive-product__orbit" />
         {expanded && (
           <div className="immersive-product__reveal" key={`reveal-${current.id}`}>
@@ -122,7 +132,14 @@ export default function ImmersiveProduct() {
           const offset = getOffset(index, active);
           const depth = Math.abs(offset);
           return (
-            <button key={product.id} type="button" className="immersive-product__view" data-active={offset === 0} style={{'--slot': offset, '--depth': depth, visibility: depth <= 3 ? 'visible' : 'hidden'}} onClick={() => { if (offset === 0) setExpanded(true); else { setActive(index); setExpanded(false); } }} aria-label={offset === 0 ? `Раскрыть ${product.name}` : `Выбрать ${product.name}`}>
+            <button key={product.id} type="button" className="immersive-product__view" data-active={offset === 0} style={{'--slot': offset, '--depth': depth, visibility: depth <= 3 ? 'visible' : 'hidden'}} onClick={() => {
+              if (dragMoved.current) {
+                dragMoved.current = false;
+                return;
+              }
+              if (offset === 0) setExpanded(true);
+              else { setActive(index); setExpanded(false); }
+            }} aria-label={offset === 0 ? `Раскрыть ${product.name}` : `Выбрать ${product.name}`}>
               <BaseImage src={`/images/products/carousel/product-${product.id}-cutout.png`} alt={`${product.name} на модели`} fill sizes="(max-width: 768px) 62vw, 28vw" priority={index < 4} />
               <span>{product.name}</span>
             </button>
