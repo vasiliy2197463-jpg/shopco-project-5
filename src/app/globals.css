@@ -324,7 +324,7 @@
 .immersive-product__reveal-copy h3 { margin-top: 12px; font-size: clamp(27px,3.2vw,52px); line-height: .94; }
 .immersive-product__reveal-copy > p:nth-of-type(2) { margin-top: 17px; color: #b7b7b7; line-height: 1.6; }
 .immersive-product__purchase { display: flex; gap: 10px; margin-top: 24px; pointer-events: auto; }
-.immersive-product__quantity { display: grid; grid-template-columns: 38px 42px 38px; align-items: center; overflow: hidden; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; background: rgba(255,255,255,.09); }
+.immersive-product__quantity { display: grid; grid-template-columns: 38px 42px 38px; width: max-content; align-items: center; align-self: flex-start; overflow: hidden; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; background: rgba(255,255,255,.09); }
 .immersive-product__quantity button { height: 42px; font-size: 22px; transition: background .2s ease; }
 .immersive-product__quantity button:hover { background: var(--product-accent); }
 .immersive-product__quantity strong { text-align: center; }
