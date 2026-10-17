@@ -19,6 +19,7 @@ export default function ImmersiveProduct() {
   const [expanded, setExpanded] = useState(false);
   const [quantities, setQuantities] = useState(() => Object.fromEntries(products.map((product) => [product.id, 1])));
   const [added, setAdded] = useState(false);
+  const [autoplayReset, setAutoplayReset] = useState(0);
   const dragStart = useRef(null);
   const dragMoved = useRef(false);
   const wheelLock = useRef(false);
@@ -28,11 +29,24 @@ export default function ImmersiveProduct() {
     setActive((current) => wrap(current + direction));
   }, []);
 
+  const manualMove = useCallback((direction) => {
+    move(direction);
+    setAutoplayReset((value) => value + 1);
+  }, [move]);
+
   useEffect(() => {
     if (expanded) return undefined;
-    const autoplay = window.setInterval(() => move(1), 2600);
-    return () => window.clearInterval(autoplay);
-  }, [expanded, move]);
+    let autoplay;
+    const resumeDelay = autoplayReset === 0 ? 2600 : 1500;
+    const resume = window.setTimeout(() => {
+      move(1);
+      autoplay = window.setInterval(() => move(1), 2600);
+    }, resumeDelay);
+    return () => {
+      window.clearTimeout(resume);
+      window.clearInterval(autoplay);
+    };
+  }, [autoplayReset, expanded, move]);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -41,12 +55,12 @@ export default function ImmersiveProduct() {
       event.preventDefault();
       if (wheelLock.current || Math.abs(event.deltaY) < 8) return;
       wheelLock.current = true;
-      move(event.deltaY > 0 ? 1 : -1);
+      manualMove(event.deltaY > 0 ? 1 : -1);
       window.setTimeout(() => { wheelLock.current = false; }, 330);
     };
     stage.addEventListener('wheel', lockPageScroll, {passive: false});
     return () => stage.removeEventListener('wheel', lockPageScroll);
-  }, [move]);
+  }, [manualMove]);
 
   const handlePointerDown = (event) => {
     if (event.target.closest('.immersive-product__purchase, .immersive-product__reveal-facts, .immersive-product__arrow')) return;
@@ -60,7 +74,7 @@ export default function ImmersiveProduct() {
     const distance = event.clientX - dragStart.current;
     if (Math.abs(distance) > 38) {
       dragMoved.current = true;
-      move(distance < 0 ? 1 : -1);
+      manualMove(distance < 0 ? 1 : -1);
     }
     dragStart.current = null;
   };
@@ -138,15 +152,19 @@ export default function ImmersiveProduct() {
                 return;
               }
               if (offset === 0) setExpanded(true);
-              else { setActive(index); setExpanded(false); }
+              else {
+                setActive(index);
+                setExpanded(false);
+                setAutoplayReset((value) => value + 1);
+              }
             }} aria-label={offset === 0 ? `Раскрыть ${product.name}` : `Выбрать ${product.name}`}>
               <BaseImage src={`/images/products/carousel/product-${product.id}-cutout.png`} alt={`${product.name} на модели`} fill sizes="(max-width: 768px) 62vw, 28vw" priority={index < 4} />
               <span>{product.name}</span>
             </button>
           );
         })}
-        <button className="immersive-product__arrow immersive-product__arrow--left" type="button" onPointerDown={(event) => event.stopPropagation()} onClick={() => move(-1)} aria-label="Предыдущий товар">←</button>
-        <button className="immersive-product__arrow immersive-product__arrow--right" type="button" onPointerDown={(event) => event.stopPropagation()} onClick={() => move(1)} aria-label="Следующий товар">→</button>
+        <button className="immersive-product__arrow immersive-product__arrow--left" type="button" onPointerDown={(event) => event.stopPropagation()} onClick={() => manualMove(-1)} aria-label="Предыдущий товар">←</button>
+        <button className="immersive-product__arrow immersive-product__arrow--right" type="button" onPointerDown={(event) => event.stopPropagation()} onClick={() => manualMove(1)} aria-label="Следующий товар">→</button>
       </div>
 
       {!expanded && <div className="immersive-product__footer" key={current.id}>

@@ -319,12 +319,12 @@
 .immersive-product__arrow--right { right: 0; }
 .immersive-product__stage[data-expanded="true"] .immersive-product__arrow { opacity: 0; pointer-events: none; }
 .immersive-product__reveal { position: absolute; z-index: 9; inset: 0; pointer-events: none; animation: immersive-reveal-in .58s cubic-bezier(.16,1,.3,1) both; }
-.immersive-product__reveal-copy { position: absolute; top: 31%; left: 1%; width: min(31%, 390px); }
+.immersive-product__reveal-copy { position: absolute; top: 31%; left: 1%; width: min(31%, 390px); max-width: 100%; box-sizing: border-box; }
 .immersive-product__reveal-copy > p:first-child { color: color-mix(in srgb, var(--product-accent) 82%, #fff); font-size: 11px; font-weight: 900; letter-spacing: .2em; }
-.immersive-product__reveal-copy h3 { margin-top: 12px; font-size: clamp(27px,3.2vw,52px); line-height: .94; }
+.immersive-product__reveal-copy h3 { margin-top: 12px; font-size: clamp(27px,3.2vw,52px); line-height: .94; overflow-wrap: anywhere; }
 .immersive-product__reveal-copy > p:nth-of-type(2) { margin-top: 17px; color: #b7b7b7; line-height: 1.6; }
 .immersive-product__purchase { display: flex; gap: 10px; margin-top: 24px; pointer-events: auto; }
-.immersive-product__quantity { display: grid; grid-template-columns: 38px 42px 38px; width: max-content; align-items: center; align-self: flex-start; overflow: hidden; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; background: rgba(255,255,255,.09); }
+.immersive-product__quantity { display: grid; grid-template-columns: 38px 42px 38px; flex: 0 0 122px; width: 122px; max-width: 122px; box-sizing: border-box; align-items: center; align-self: flex-start; overflow: hidden; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; background: rgba(255,255,255,.09); }
 .immersive-product__quantity button { height: 42px; font-size: 22px; transition: background .2s ease; }
 .immersive-product__quantity button:hover { background: var(--product-accent); }
 .immersive-product__quantity strong { text-align: center; }
@@ -358,13 +358,16 @@
   .immersive-product__stage { height: 440px; margin-top: 14px; }
   .immersive-product__view { width: 58vw; transform: translateX(calc(-50% + var(--slot) * 52vw)) translateZ(calc(var(--depth) * -170px)) rotateY(calc(var(--slot) * -25deg)) scale(calc(1 - var(--depth) * .2)); }
   .immersive-product__footer { grid-template-columns: 1fr; align-items: stretch; }
-  .immersive-product__reveal-copy { top: 4%; left: 2%; width: 62%; }
+  .immersive-product__reveal { inset-inline: 5px; }
+  .immersive-product__reveal-copy { top: 4%; left: 5px; width: calc(62% - 10px); }
   .immersive-product__reveal-copy h3 { font-size: 26px; }
   .immersive-product__reveal-copy > p:nth-of-type(2) { display: none; }
   .immersive-product__purchase { flex-direction: column; margin-top: 14px; }
-  .immersive-product__reveal-facts { top: auto; right: 2%; bottom: 2%; width: 52%; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .immersive-product__reveal-facts { top: auto; right: 0; bottom: 2%; width: 100%; grid-template-columns: .8fr .9fr 1.15fr; gap: 5px; box-sizing: border-box; border: 5px solid transparent; border-radius: 18px; background: rgba(8,9,11,.76); padding: 10px 5px; backdrop-filter: blur(12px); }
+  .immersive-product__reveal-facts > div { min-width: 0; padding-left: 8px; }
+  .immersive-product__reveal-facts span { font-size: 8px; letter-spacing: .08em; }
   .immersive-product__reveal-facts button { grid-column: 1/-1; }
-  .immersive-product__reveal-facts strong { font-size: 13px; }
+  .immersive-product__reveal-facts strong { font-size: 12px; white-space: nowrap; }
 }
 
 .immersive-product__modal { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(0,0,0,.72); backdrop-filter: blur(14px); }
