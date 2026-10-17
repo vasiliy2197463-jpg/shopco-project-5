@@ -228,6 +228,178 @@
   animation-play-state: paused;
 }
 
+/* Immersive product carousel inspired by a physical showroom turntable. */
+.immersive-product {
+  position: relative;
+  min-height: min(900px, 92vh);
+  overflow: hidden;
+  padding: clamp(34px, 5vw, 72px) clamp(20px, 6vw, 96px) 34px;
+  background:
+    radial-gradient(circle at 50% 58%, color-mix(in srgb, var(--product-accent) 30%, transparent), transparent 35%),
+    linear-gradient(145deg, #0d0e12 0%, #020305 62%, #11141a 100%);
+  color: #fff;
+}
+
+.immersive-product::before {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 42px 42px;
+  content: '';
+  mask-image: linear-gradient(to bottom, black, transparent 82%);
+  pointer-events: none;
+}
+
+.immersive-product__copy { position: relative; z-index: 8; }
+.immersive-product__copy p { color: #b8ff00; font-size: 12px; font-weight: 800; letter-spacing: .26em; }
+.immersive-product__copy h2 { margin-top: 8px; font-size: clamp(42px, 6vw, 92px); line-height: .88; letter-spacing: 5px; }
+.immersive-product__copy span { display: block; margin-top: 18px; color: #a9a9a9; font-size: 14px; }
+
+.immersive-product__stage {
+  position: relative;
+  height: clamp(390px, 50vw, 590px);
+  margin-top: clamp(-28px, -2vw, -10px);
+  perspective: 1050px;
+  touch-action: pan-y;
+  user-select: none;
+  cursor: grab;
+}
+.immersive-product__stage:active { cursor: grabbing; }
+.immersive-product__stage[data-expanded="true"] { cursor: default; }
+.immersive-product__stage::after {
+  position: absolute;
+  right: 5%; bottom: 1%; left: 5%;
+  height: 23%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0,0,0,.30), transparent 66%);
+  content: '';
+  transform: rotateX(68deg);
+}
+.immersive-product__orbit {
+  display: none;
+}
+.immersive-product__view {
+  position: absolute;
+  z-index: calc(4 - var(--depth));
+  top: 2%; left: 50%;
+  width: clamp(210px, 29vw, 410px);
+  height: 88%;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  opacity: calc(1 - var(--depth) * .3);
+  transform: translateX(calc(-50% + var(--slot) * clamp(190px, 25vw, 390px))) translateY(calc(var(--depth) * 34px)) translateZ(calc(var(--depth) * -210px)) rotateY(calc(var(--slot) * -38deg)) scale(calc(1 - var(--depth) * .13));
+  transition: transform .72s cubic-bezier(.16,1,.3,1), opacity .45s ease, filter .45s ease;
+  filter: saturate(calc(1 - var(--depth) * .42));
+  overflow: visible;
+  will-change: transform;
+}
+.immersive-product__view[data-active="true"] { filter: saturate(1.08) contrast(1.03); }
+.immersive-product__stage[data-expanded="true"] .immersive-product__view:not([data-active="true"]) { opacity: .06; pointer-events: none; transform: translateX(calc(-50% + var(--slot) * 44vw)) translateZ(-380px) rotateY(calc(var(--slot) * -55deg)) scale(.68); }
+.immersive-product__stage[data-expanded="true"] .immersive-product__view[data-active="true"] { z-index: 7; transform: translateX(-8%) translateY(-2%) translateZ(85px) rotateY(-11deg) scale(1.14); }
+.immersive-product__view img {
+  object-fit: contain;
+  padding: 0 5px 46px;
+  pointer-events: none;
+  filter: drop-shadow(0 30px 25px rgba(0,0,0,.48));
+}
+.immersive-product__view span {
+  position: absolute; z-index: 2; right: 18px; bottom: 16px; left: 18px;
+  color: #fff; font-size: 11px; font-weight: 900; letter-spacing: .17em; text-align: center;
+}
+.immersive-product__arrow {
+  position: absolute; z-index: 10; top: 50%;
+  display: grid; width: 52px; height: 52px; place-items: center;
+  border: 1px solid rgba(255,255,255,.26); border-radius: 50%;
+  background: rgba(15,16,19,.72); color: #fff; font-size: 25px;
+  backdrop-filter: blur(12px); transform: translateY(-50%); transition: .2s ease;
+}
+.immersive-product__arrow:hover { border-color: #b8ff00; color: #b8ff00; transform: translateY(-50%) scale(1.08); }
+.immersive-product__arrow--left { left: 0; }
+.immersive-product__arrow--right { right: 0; }
+.immersive-product__stage[data-expanded="true"] .immersive-product__arrow { opacity: 0; pointer-events: none; }
+.immersive-product__reveal { position: absolute; z-index: 9; inset: 0; pointer-events: none; animation: immersive-reveal-in .58s cubic-bezier(.16,1,.3,1) both; }
+.immersive-product__reveal-copy { position: absolute; top: 31%; left: 1%; width: min(31%, 390px); }
+.immersive-product__reveal-copy > p:first-child { color: color-mix(in srgb, var(--product-accent) 82%, #fff); font-size: 11px; font-weight: 900; letter-spacing: .2em; }
+.immersive-product__reveal-copy h3 { margin-top: 12px; font-size: clamp(27px,3.2vw,52px); line-height: .94; }
+.immersive-product__reveal-copy > p:nth-of-type(2) { margin-top: 17px; color: #b7b7b7; line-height: 1.6; }
+.immersive-product__purchase { display: flex; gap: 10px; margin-top: 24px; pointer-events: auto; }
+.immersive-product__quantity { display: grid; grid-template-columns: 38px 42px 38px; align-items: center; overflow: hidden; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; background: rgba(255,255,255,.09); }
+.immersive-product__quantity button { height: 42px; font-size: 22px; transition: background .2s ease; }
+.immersive-product__quantity button:hover { background: var(--product-accent); }
+.immersive-product__quantity strong { text-align: center; }
+.immersive-product__add { flex: 1; min-height: 42px; border-radius: 999px; background: #111; padding: 0 18px; color: #fff; font-size: 10px; font-weight: 900; letter-spacing: .08em; transition: transform .2s ease, background .2s ease; }
+.immersive-product__add:hover { background: color-mix(in srgb, var(--product-accent) 76%, #111); transform: translateY(-2px); }
+.immersive-product__add:disabled { cursor: not-allowed; opacity: .45; }
+.immersive-product__reveal-facts { position: absolute; top: 25%; right: 1%; display: grid; width: min(19%, 220px); gap: 18px; }
+.immersive-product__reveal-facts > div { display: grid; gap: 4px; border-left: 3px solid var(--product-accent); padding-left: 13px; }
+.immersive-product__reveal-facts span { color: #aaa; font-size: 10px; font-weight: 900; letter-spacing: .15em; }
+.immersive-product__reveal-facts strong { font-size: clamp(18px,2vw,29px); }
+.immersive-product__reveal-facts button { pointer-events: auto; margin-top: 10px; border-radius: 999px; background: #111; padding: 13px 16px; color: white; font-size: 10px; font-weight: 900; letter-spacing: .08em; }
+@keyframes immersive-reveal-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+.immersive-product__footer {
+  position: relative; z-index: 8;
+  display: grid; grid-template-columns: minmax(0,1.2fr) minmax(360px,.8fr); align-items: end; gap: clamp(28px,6vw,90px);
+  border-top: 1px solid rgba(255,255,255,.18); padding-top: 22px;
+  animation: immersive-info-in .48s cubic-bezier(.16,1,.3,1) both;
+}
+.immersive-product__summary > p:first-child { color: color-mix(in srgb, var(--product-accent) 82%, #fff); font-size: 11px; font-weight: 900; letter-spacing: .2em; }
+.immersive-product__summary h3 { margin-top: 8px; font-size: clamp(24px,3.2vw,50px); line-height: 1; }
+.immersive-product__summary-description { max-width: 680px; margin-top: 12px; color: #b8b8b8; line-height: 1.55; }
+.immersive-product__facts { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.immersive-product__facts > div { display: grid; gap: 4px; border-left: 1px solid rgba(255,255,255,.28); padding-left: 13px; }
+.immersive-product__facts span { color: #aaa; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+.immersive-product__facts strong { font-size: clamp(15px,1.6vw,22px); }
+.immersive-product__facts > p { grid-column: 1/-1; margin-top: 9px; color: #999; font-size: 12px; }
+@keyframes immersive-info-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 700px) {
+  .immersive-product { min-height: 780px; padding-inline: 18px; }
+  .immersive-product__stage { height: 440px; margin-top: 14px; }
+  .immersive-product__view { width: 58vw; transform: translateX(calc(-50% + var(--slot) * 52vw)) translateZ(calc(var(--depth) * -170px)) rotateY(calc(var(--slot) * -25deg)) scale(calc(1 - var(--depth) * .2)); }
+  .immersive-product__footer { grid-template-columns: 1fr; align-items: stretch; }
+  .immersive-product__reveal-copy { top: 4%; left: 2%; width: 62%; }
+  .immersive-product__reveal-copy h3 { font-size: 26px; }
+  .immersive-product__reveal-copy > p:nth-of-type(2) { display: none; }
+  .immersive-product__purchase { flex-direction: column; margin-top: 14px; }
+  .immersive-product__reveal-facts { top: auto; right: 2%; bottom: 2%; width: 52%; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .immersive-product__reveal-facts button { grid-column: 1/-1; }
+  .immersive-product__reveal-facts strong { font-size: 13px; }
+}
+
+.immersive-product__modal { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(0,0,0,.72); backdrop-filter: blur(14px); }
+.immersive-product__panel { position: relative; display: grid; grid-template-columns: minmax(0,1.1fr) minmax(320px,.9fr); width: min(1120px, 96vw); max-height: 91vh; overflow: auto; border-radius: 28px; background: #f1f1ed; box-shadow: 0 40px 120px rgba(0,0,0,.5); }
+.immersive-product__close { position: absolute; z-index: 4; top: 16px; right: 18px; display: grid; width: 44px; height: 44px; place-items: center; border-radius: 50%; background: #111; color: white; font-size: 30px; line-height: 1; }
+.immersive-product__gallery { padding: 24px; background: #e2e2de; }
+.immersive-product__main-image { position: relative; min-height: 610px; }
+.immersive-product__main-image img { object-fit: contain; mix-blend-mode: multiply; }
+.immersive-product__thumbs { display: flex; justify-content: center; gap: 10px; }
+.immersive-product__thumbs button { position: relative; width: 74px; height: 74px; overflow: hidden; border: 2px solid transparent; border-radius: 12px; background: #eee; }
+.immersive-product__thumbs button[data-active="true"] { border-color: #111; }
+.immersive-product__thumbs img { object-fit: cover; }
+.immersive-product__details { display: flex; flex-direction: column; justify-content: center; padding: clamp(32px,5vw,72px); }
+.immersive-product__details > p:first-child { color: #6b9900; font-size: 11px; font-weight: 900; letter-spacing: .18em; }
+.immersive-product__details h3 { margin-top: 14px; font-size: clamp(32px,4vw,58px); line-height: .95; }
+.immersive-product__price { margin-top: 20px; font-size: 29px; font-weight: 900; }
+.immersive-product__description { margin-top: 18px; color: #555; line-height: 1.65; }
+.immersive-product__option,.immersive-product__sizes { margin-top: 25px; }
+.immersive-product__option b,.immersive-product__sizes b { display: block; margin-bottom: 10px; font-size: 11px; letter-spacing: .16em; }
+.immersive-product__option > div,.immersive-product__sizes > div { display: flex; flex-wrap: wrap; gap: 9px; }
+.immersive-product__option button { width: 30px; height: 30px; border: 3px solid #f1f1ed; border-radius: 50%; box-shadow: 0 0 0 1px #aaa; }
+.immersive-product__option button[data-active="true"] { box-shadow: 0 0 0 3px #111; }
+.immersive-product__sizes button { border-radius: 999px; background: #ddd; padding: 10px 14px; color: #111; font-size: 12px; }
+.immersive-product__sizes button[data-active="true"] { background: #111; color: white; }
+.immersive-product__details > a { margin-top: 30px; border-radius: 999px; background: #111; padding: 17px 24px; color: white; font-size: 13px; font-weight: 900; text-align: center; }
+
+@media (max-width: 850px) {
+  .immersive-product__panel { grid-template-columns: 1fr; }
+  .immersive-product__main-image { min-height: 430px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .immersive-product__view { transition-duration: .01ms; }
+}
+
 @keyframes brand-scroll {
   to { transform: translateX(-50%); }
 }

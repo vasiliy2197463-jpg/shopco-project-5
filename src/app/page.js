@@ -4,6 +4,7 @@ import NewArrivals from '@/components/sections/NewArrivals';
 import TopSelling from '@/components/sections/TopSelling';
 import DressStyle from '@/components/sections/DressStyle';
 import HappyCustomers from '@/components/sections/HappyCustomers';
+import ImmersiveProduct from '@/components/sections/ImmersiveProduct';
 
 export const metadata = {
   title: 'LUCHIK.CO - Find Clothes That Matches Your Style',
@@ -15,6 +16,7 @@ export default function Home() {
     <main>
       <Hero />
       <BrandLogos />
+      <ImmersiveProduct />
       <NewArrivals />
       <TopSelling />
       <DressStyle />
