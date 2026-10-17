@@ -252,7 +252,7 @@
 
 .immersive-product__copy { position: relative; z-index: 8; }
 .immersive-product__copy p { color: #b8ff00; font-size: 12px; font-weight: 800; letter-spacing: .26em; }
-.immersive-product__copy h2 { margin-top: 8px; font-size: clamp(42px, 6vw, 92px); line-height: 1.02; letter-spacing: 5px; }
+.immersive-product__copy h2 { margin-top: 8px; font-size: clamp(42px, 6vw, 92px); line-height: 1.1; letter-spacing: 5px; }
 .immersive-product__copy span { display: block; margin-top: 18px; color: #a9a9a9; font-size: 14px; }
 
 .immersive-product__stage {
